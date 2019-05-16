@@ -1,0 +1,14 @@
+On Windows:
+
+C:\Projects\YetAnotherStupidBenchmark\Cpp\cmake-build-release\Cpp.exe
+Sum: 6716388133167789 in 6460 ms
+
+"C:\Program Files\dotnet\dotnet.exe" C:/Projects/YetAnotherStupidBenchmark/CSharp/bin/Release/netcoreapp3.0/YetAnotherStupidBenchmark.dll
+File: C:\Downloads\node-v9.9.0-x64.msi (15.879 MB)
+  ComputeSumAsync: 64645236628323 in 104.960 ms
+  OldComputeSum:   64645236628323 in 153.160 ms
+  Are equal?       True
+File: C:\Downloads\26_dump.zip (1717.394 MB)
+  ComputeSumAsync: 6716388133167789 in 7360.919 ms
+  OldComputeSum:   6716388133167789 in 16015.387 ms
+  Are equal?       True
