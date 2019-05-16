@@ -8,7 +8,7 @@ using static System.Console;
 
 namespace YetAnotherStupidBenchmark
 {
-    class RleDecodeTest
+    class Benchmark
     {
         public static int MinBufferSize = 1 << 16;
 
@@ -23,8 +23,8 @@ namespace YetAnotherStupidBenchmark
             WriteLine($"File: {fileName} ({new FileInfo(fileName).Length / 1024.0 / 1024:f3} MB)");
             var r1 = Measure(() => Task.Run(() => ComputeSumAsync(fileName)).Result);
             WriteLine($"  ComputeSumAsync: {r1.Result} in {r1.Time.TotalMilliseconds:f3} ms");
-            var r2 = Measure(() => ComputeSum(fileName));
-            WriteLine($"  ComputeSum:      {r2.Result} in {r2.Time.TotalMilliseconds:f3} ms");
+            var r2 = Measure(() => OldComputeSum(fileName));
+            WriteLine($"  OldComputeSum:   {r2.Result} in {r2.Time.TotalMilliseconds:f3} ms");
             WriteLine($"  Are equal?       {r1.Result == r2.Result}");
         }
 
@@ -91,7 +91,7 @@ namespace YetAnotherStupidBenchmark
             return consumeTask.Result;
         }
 
-        public static long ComputeSum(string fileName)
+        public static long OldComputeSum(string fileName)
         {
             using var fs = new FileStream(fileName, FileMode.Open);
             long sum = 0;
