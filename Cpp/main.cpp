@@ -1,7 +1,11 @@
 #include <cstdio>
 #include <cstdint>
+#include <iostream>
+#include <chrono>
 #include <fcntl.h>
 #include <unistd.h>
+
+using namespace std;
 
 auto readRLE() {
     auto fIn = open("C:\\Downloads\\26_dump.zip", O_RDONLY | O_BINARY, 0644);
@@ -42,7 +46,10 @@ auto readRLE() {
 }
 
 int main() {
+    auto start = chrono::steady_clock::now();
     auto sum = readRLE();
-    printf("Sum: %lld\n", sum);
+    auto end = chrono::steady_clock::now();
+    auto duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+    cout << "Sum: " << sum << " in " << duration << " ms" << endl;
     return 0;
 }
