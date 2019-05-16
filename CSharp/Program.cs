@@ -115,7 +115,7 @@ namespace YetAnotherStupidBenchmark
         }
 
         private static void ProcessSpan(ReadOnlySpan<byte> span, ref long sum, ref int n) {
-            var (sum1, n1) = (sum, n);
+            var (sum1, n1) = (sum, n); // Copying to locals -- I suspect JIT compiler won't do this
             foreach (var b in span) {
                 if (b < 128)
                     n1 = (n1 << 7) + b;
@@ -124,7 +124,6 @@ namespace YetAnotherStupidBenchmark
                     n1 = 0;
                 }
             }
-
             (sum, n) = (sum1, n1);
         }
     }
