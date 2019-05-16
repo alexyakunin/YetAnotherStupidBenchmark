@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
@@ -21,11 +22,13 @@ namespace YetAnotherStupidBenchmark
         public static void Run(string fileName)
         {
             WriteLine($"File: {fileName} ({new FileInfo(fileName).Length / 1024.0 / 1024:f3} MB)");
-            var r1 = Measure(() => Task.Run(() => ComputeSumAsync(fileName)).Result);
-            WriteLine($"  ComputeSumAsync: {r1.Result} in {r1.Time.TotalMilliseconds:f3} ms");
-            var r2 = Measure(() => OldComputeSum(fileName));
-            WriteLine($"  OldComputeSum:   {r2.Result} in {r2.Time.TotalMilliseconds:f3} ms");
-            WriteLine($"  Are equal?       {r1.Result == r2.Result}");
+            var r1 = Measure(() => ComputeSum(fileName));
+            WriteLine($"  ComputeSum:      {r1.Result} in {r1.Time.TotalMilliseconds:f3} ms");
+            var r2 = Measure(() => Task.Run(() => ComputeSumAsync(fileName)).Result);
+            WriteLine($"  ComputeSumAsync: {r2.Result} in {r2.Time.TotalMilliseconds:f3} ms");
+            var r3 = Measure(() => OldComputeSum(fileName));
+            WriteLine($"  OldComputeSum:   {r3.Result} in {r3.Time.TotalMilliseconds:f3} ms");
+            WriteLine($"  Are equal?       {r1.Result == r2.Result && r2.Result == r3.Result}");
         }
 
         public static (T Result, TimeSpan Time) Measure<T>(Func<T> func)
@@ -56,20 +59,6 @@ namespace YetAnotherStupidBenchmark
             }
 
             // Can't embed this into ConsumeAsync b/c async methods can't have Span<T> locals
-            void ProcessSpan(ReadOnlySpan<byte> span, ref long sum, ref int n) {
-                var (sum1, n1) = (sum, n);
-                foreach (var b in span) {
-                    if (b < 128)
-                        n1 = (n1 << 7) + b;
-                    else {
-                        sum1 += (n1 << 7) + b - 128;
-                        n1 = 0;
-                    }
-                }
-
-                (sum, n) = (sum1, n1);
-            }
-
             async Task<long> ConsumeAsync() {
                 var sum = 0L;
                 var n = 0; 
@@ -91,6 +80,22 @@ namespace YetAnotherStupidBenchmark
             return consumeTask.Result;
         }
 
+        public static long ComputeSum(string fileName)
+        {
+            using var fs = new FileStream(fileName, FileMode.Open);
+            using var lease = MemoryPool<byte>.Shared.Rent(MinBufferSize);
+            var buffer = lease.Memory;
+
+            long sum = 0;
+            int n = 0;
+            while (true) {
+                var count = fs.Read(buffer.Span);
+                if (count == 0)
+                    return sum + n;
+                ProcessSpan(buffer.Span.Slice(0, count), ref sum, ref n);
+            }
+        }
+
         public static long OldComputeSum(string fileName)
         {
             using var fs = new FileStream(fileName, FileMode.Open);
@@ -107,6 +112,20 @@ namespace YetAnotherStupidBenchmark
                 sum += (n << 7) + b - 128;
                 n = 0;
             }
+        }
+
+        private static void ProcessSpan(ReadOnlySpan<byte> span, ref long sum, ref int n) {
+            var (sum1, n1) = (sum, n);
+            foreach (var b in span) {
+                if (b < 128)
+                    n1 = (n1 << 7) + b;
+                else {
+                    sum1 += (n1 << 7) + b - 128;
+                    n1 = 0;
+                }
+            }
+
+            (sum, n) = (sum1, n1);
         }
     }
 }
