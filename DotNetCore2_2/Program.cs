@@ -42,7 +42,7 @@ namespace YetAnotherStupidBenchmark
 
         public static async Task<long> ComputeSumAsync(string fileName, CancellationToken ct = default)
         {
-            await using var fs = new FileStream(fileName, FileMode.Open);
+            using var fs = new FileStream(fileName, FileMode.Open);
             var pipe = new Pipe();
 
             async Task ProduceAsync() {
@@ -68,7 +68,7 @@ namespace YetAnotherStupidBenchmark
                     if (buffer.IsEmpty && result.IsCompleted)
                         break;
                     foreach (var segment in buffer)
-                        ProcessSpan(segment.Span, ref sum, ref n);
+                        ProcessSpanUnsafe(segment.Span, ref sum, ref n);
                     pipe.Reader.AdvanceTo(buffer.End);
                 }
                 pipe.Reader.Complete();
@@ -92,7 +92,7 @@ namespace YetAnotherStupidBenchmark
                 var count = fs.Read(buffer.Span);
                 if (count == 0)
                     return sum + n;
-                ProcessSpan(buffer.Span.Slice(0, count), ref sum, ref n);
+                ProcessSpanUnsafe(buffer.Span.Slice(0, count), ref sum, ref n);
             }
         }
 
@@ -122,6 +122,24 @@ namespace YetAnotherStupidBenchmark
                 else {
                     sum1 += (n1 << 7) + b - 128;
                     n1 = 0;
+                }
+            }
+            (sum, n) = (sum1, n1);
+        }
+
+        private static unsafe void ProcessSpanUnsafe(ReadOnlySpan<byte> span, ref long sum, ref int n) {
+            var (sum1, n1) = (sum, n); // Copying to locals -- I suspect JIT compiler won't do this
+            fixed (byte* pStart = span) {
+                var pEnd = pStart + span.Length;
+                var p = pStart;
+                while (p < pEnd) {
+                    var b = *p++;
+                    if (b < 128)
+                        n1 = (n1 << 7) + b;
+                    else {
+                        sum1 += (n1 << 7) + b - 128;
+                        n1 = 0;
+                    }
                 }
             }
             (sum, n) = (sum1, n1);

@@ -1,16 +1,35 @@
-On Windows:
+Windows, GCC on MinGW:
 
 C:\Projects\YetAnotherStupidBenchmark\Cpp\cmake-build-release\Cpp.exe
-Sum: 6716388133167789 in 6460 ms
+readRLEByte: 6716389968175661 in 6400 ms
+readRLEBuffer: 6716388756365997 in 6054 ms
 
-"C:\Program Files\dotnet\dotnet.exe" C:/Projects/YetAnotherStupidBenchmark/CSharp/bin/Release/netcoreapp3.0/YetAnotherStupidBenchmark.dll
+
+Windows, .NET Core 3 preview 5:
+
+"C:\Program Files\dotnet\dotnet.exe" C:/Projects/YetAnotherStupidBenchmark/DotNetCore3/bin/Release/netcoreapp3.0/YetAnotherStupidBenchmark.dll
 File: C:\Downloads\node-v9.9.0-x64.msi (15.879 MB)
-  ComputeSum:      64645236628323 in 65.236 ms
-  ComputeSumAsync: 64645236628323 in 98.513 ms
-  OldComputeSum:   64645236628323 in 153.458 ms
+  ComputeSum:      64645236628323 in 68.357 ms
+  ComputeSumAsync: 64645236628323 in 97.532 ms
+  OldComputeSum:   64645236628323 in 155.139 ms
   Are equal?       True
 File: C:\Downloads\26_dump.zip (1717.394 MB)
-  ComputeSum:      6716388133167789 in 6526.302 ms
-  ComputeSumAsync: 6716388133167789 in 7335.779 ms
-  OldComputeSum:   6716388133167789 in 17549.071 ms
+  ComputeSum:      6716388133167789 in 6179.320 ms
+  ComputeSumAsync: 6716388133167789 in 7145.447 ms
+  OldComputeSum:   6716388133167789 in 15893.534 ms
+  Are equal?       True
+
+
+Windwos, .NET Core 2.2:
+
+"C:\Program Files\dotnet\dotnet.exe" C:/Projects/YetAnotherStupidBenchmark/DotNetCore2_2/bin/Release/netcoreapp2.2/YetAnotherStupidBenchmark.dll
+File: C:\Downloads\node-v9.9.0-x64.msi (15.879 MB)
+  ComputeSum:      64645236628323 in 65.002 ms
+  ComputeSumAsync: 64645236628323 in 102.779 ms
+  OldComputeSum:   64645236628323 in 149.867 ms
+  Are equal?       True
+File: C:\Downloads\26_dump.zip (1717.394 MB)
+  ComputeSum:      6716388133167789 in 6459.833 ms
+  ComputeSumAsync: 6716388133167789 in 7377.074 ms
+  OldComputeSum:   6716388133167789 in 16759.749 ms
   Are equal?       True
