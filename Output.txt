@@ -1,35 +1,36 @@
 Windows, GCC on MinGW:
 
-C:\Projects\YetAnotherStupidBenchmark\Cpp\cmake-build-release\Cpp.exe
-readRLEByte: 6716389968175661 in 6400 ms
-readRLEBuffer: 6716388756365997 in 6054 ms
+C:\Projects\YetAnotherStupidBenchmark\Cpp>Run.bat
+readRLEByte: 6716389968175661 in 6271 ms
+readRLEBuffer: 6716388756365997 in 5991 ms
 
 
 Windows, .NET Core 3 preview 5:
 
-"C:\Program Files\dotnet\dotnet.exe" C:/Projects/YetAnotherStupidBenchmark/DotNetCore3/bin/Release/netcoreapp3.0/YetAnotherStupidBenchmark.dll
+C:\Projects\YetAnotherStupidBenchmark\DotNetCore3>dotnet run -c Release
 File: C:\Downloads\node-v9.9.0-x64.msi (15.879 MB)
-  ComputeSum:      64645236628323 in 68.357 ms
-  ComputeSumAsync: 64645236628323 in 97.532 ms
-  OldComputeSum:   64645236628323 in 155.139 ms
+  ComputeSum:      64645236628323 in 58.927 ms
+  ComputeSumAsync: 64645236628323 in 96.788 ms
+  OldComputeSum:   64645236628323 in 151.153 ms
   Are equal?       True
 File: C:\Downloads\26_dump.zip (1717.394 MB)
-  ComputeSum:      6716388133167789 in 6179.320 ms
-  ComputeSumAsync: 6716388133167789 in 7145.447 ms
-  OldComputeSum:   6716388133167789 in 15893.534 ms
+  ComputeSum:      6716388133167789 in 6311.156 ms
+  ComputeSumAsync: 6716388133167789 in 7024.558 ms
+  OldComputeSum:   6716388133167789 in 17048.505 ms
   Are equal?       True
 
 
 Windwos, .NET Core 2.2:
 
-"C:\Program Files\dotnet\dotnet.exe" C:/Projects/YetAnotherStupidBenchmark/DotNetCore2_2/bin/Release/netcoreapp2.2/YetAnotherStupidBenchmark.dll
+C:\Projects\YetAnotherStupidBenchmark\DotNetCore2_2>dotnet run -c Release
 File: C:\Downloads\node-v9.9.0-x64.msi (15.879 MB)
-  ComputeSum:      64645236628323 in 65.002 ms
-  ComputeSumAsync: 64645236628323 in 102.779 ms
-  OldComputeSum:   64645236628323 in 149.867 ms
+  ComputeSum:      64645236628323 in 97.650 ms
+  ComputeSumAsync: 64645236628323 in 127.818 ms
+  OldComputeSum:   64645236628323 in 160.163 ms
   Are equal?       True
 File: C:\Downloads\26_dump.zip (1717.394 MB)
-  ComputeSum:      6716388133167789 in 6459.833 ms
-  ComputeSumAsync: 6716388133167789 in 7377.074 ms
-  OldComputeSum:   6716388133167789 in 16759.749 ms
+  ComputeSum:      6716388133167789 in 6094.666 ms
+  ComputeSumAsync: 6716388133167789 in 6650.097 ms
+  OldComputeSum:   6716388133167789 in 18623.404 ms
   Are equal?       True
+
