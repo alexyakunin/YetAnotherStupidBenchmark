@@ -15,7 +15,7 @@ namespace YetAnotherStupidBenchmark
 
         public static void Main()
         {
-            Run("C:\\Downloads\\node-v9.9.0-x64.msi"); // 16 MB -- warmup
+            Run("C:\\Downloads\\dotnet-sdk-3.0.100-preview5-011568-win-x64.exe "); // ~ 130 MB -- warmup
             Run("C:\\Downloads\\26_dump.zip"); // ~ 1.7 GB
         }
         
