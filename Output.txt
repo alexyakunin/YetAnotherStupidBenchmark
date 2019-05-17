@@ -1,3 +1,31 @@
+Ubuntu 18.04, GCC:
+
+alex@AYUB:~/Projects/YetAnotherStupidBenchmark/Cpp/cmake-build-release$ ./Cpp 
+readRLEByte: 518434866133189 in 525 ms
+readRLEBuffer: 518434866130587 in 470 ms
+readRLEMmap: 518434866130587 in 468 ms
+
+
+Ubuntu 18.04, .NET Core 3.0 preview 5:
+
+alex@AYUB:~/Projects/YetAnotherStupidBenchmark/DotNetCore3$ dotnet3 run -c Release
+File: /home/alex/Downloads/dotnet-sdk-3.0.100-preview5-011568-linux-x64.tar.gz (124.154 MB)
+  ComputeSum:      518434866130608 in 488.391 ms
+  ComputeSumAsync: 518434866130608 in 663.092 ms
+  OldComputeSum:   518434866130608 in 1153.466 ms
+  Are equal?       True
+
+
+Ubuntu 18.04, .NET Core 2.2:
+
+alex@AYUB:~/Projects/YetAnotherStupidBenchmark/DotNetCore2_2$ dotnet run -c Release
+File: /home/alex/Downloads/dotnet-sdk-3.0.100-preview5-011568-linux-x64.tar.gz (124.154 MB)
+  ComputeSum:      518434866130608 in 601.064 ms
+  ComputeSumAsync: 518434866130608 in 672.458 ms
+  OldComputeSum:   518434866130608 in 1371.948 ms
+  Are equal?       True
+
+
 Windows, GCC on MinGW:
 
 C:\Projects\YetAnotherStupidBenchmark\Cpp>Run.bat
@@ -33,4 +61,5 @@ File: C:\Downloads\26_dump.zip (1717.394 MB)
   ComputeSumAsync: 6716388133167789 in 6650.097 ms
   OldComputeSum:   6716388133167789 in 18623.404 ms
   Are equal?       True
+
 

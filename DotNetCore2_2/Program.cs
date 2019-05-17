@@ -15,8 +15,13 @@ namespace YetAnotherStupidBenchmark
 
         public static void Main()
         {
-            Run("C:\\Downloads\\dotnet-sdk-3.0.100-preview5-011568-win-x64.exe "); // ~ 130 MB -- warmup
-            Run("C:\\Downloads\\26_dump.zip"); // ~ 1.7 GB
+            if (Environment.OSVersion.Platform == PlatformID.Unix) {
+                Run("/home/alex/Downloads/dotnet-sdk-3.0.100-preview5-011568-linux-x64.tar.gz");
+            }
+            else {
+                Run("C:\\Downloads\\dotnet-sdk-3.0.100-preview5-011568-win-x64.exe "); // ~ 130 MB -- warmup
+                Run("C:\\Downloads\\26_dump.zip"); // ~ 1.7 GB
+            }
         }
         
         public static void Run(string fileName)

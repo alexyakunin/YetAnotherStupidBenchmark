@@ -1,4 +1,8 @@
+#ifdef WIN32
 #define Windows
+#else
+#define Unix
+#endif
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -12,9 +16,11 @@
 #include <iostream>
 #include <chrono>
 
-#ifndef Windows
+#ifdef Unix
 #include <sys/mman.h>
+#define O_BINARY 0
 #endif
+
 
 using namespace std;
 
@@ -86,8 +92,8 @@ auto readRLEBuffer(char* fileName) {
     return sum;
 }
 
-#ifndef Windows
-void readRLEMmap(char* fileName) {
+#ifdef Unix
+auto readRLEMmap(char* fileName) {
     auto fIn = open(fileName, O_RDONLY | O_BINARY, 0644);
 
     struct stat s;
@@ -124,10 +130,14 @@ int main() {
         cout << fnName << ": " << sum << " in " << duration << " ms" << endl;
     };
 
+#ifdef Unix
+    char* fileName = (char*) "/home/alex/Downloads/dotnet-sdk-3.0.100-preview5-011568-linux-x64.tar.gz";
+#else
     char* fileName = (char*) "C:\\Downloads\\26_dump.zip";
+#endif
     measure("readRLEByte", readRLEByte, fileName);
     measure("readRLEBuffer", readRLEBuffer, fileName);
-#ifndef Windows
+#ifdef Unix
     measure("readRLEMmap", readRLEMmap, fileName);
 #endif
     return 0;
