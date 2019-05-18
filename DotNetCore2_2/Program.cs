@@ -50,34 +50,35 @@ namespace YetAnotherStupidBenchmark
             using var fs = new FileStream(fileName, FileMode.Open);
             var pipe = new Pipe();
 
-            async Task ProduceAsync() {
-                while (true) {
-                    var buffer = pipe.Writer.GetMemory(MinBufferSize);
-                    var byteCount = await fs.ReadAsync(buffer, ct).ConfigureAwait(false);
-                    if (byteCount == 0) 
-                        break;
-                    pipe.Writer.Advance(byteCount);
-                    if ((await pipe.Writer.FlushAsync(ct).ConfigureAwait(false)).IsCompleted)
-                        break;
-                }
+            async Task ProduceAsync()
+            {
+                await fs.CopyToAsync(pipe.Writer, ct);
                 pipe.Writer.Complete();
             }
 
-            // Can't embed this into ConsumeAsync b/c async methods can't have Span<T> locals
             async Task<long> ConsumeAsync() {
-                var sum = 0L;
-                var n = 0; 
-                while (true) {
-                    var result = await pipe.Reader.ReadAsync(ct).ConfigureAwait(false);
-                    var buffer = result.Buffer;
-                    if (buffer.IsEmpty && result.IsCompleted)
-                        break;
-                    foreach (var segment in buffer)
-                        ProcessSpanUnsafe(segment.Span, ref sum, ref n);
-                    pipe.Reader.AdvanceTo(buffer.End);
+                try {
+                    var sum = 0L;
+                    var n = 0;
+                    var lastTimeProcessed = 0L;
+                    var readTask = pipe.Reader.ReadAsync(ct);
+                    while (true) {
+                        var result = await readTask.ConfigureAwait(false);
+                        var buffer = result.Buffer;
+                        var toProcess = buffer.Slice(lastTimeProcessed);
+                        lastTimeProcessed = toProcess.Length;
+                        if (toProcess.IsEmpty && (result.IsCompleted || result.IsCanceled))
+                            break;
+                        pipe.Reader.AdvanceTo(toProcess.Start, toProcess.End);
+                        readTask = pipe.Reader.ReadAsync(ct); // We can start it right now to read while compute
+                        foreach (var segment in toProcess)
+                            ProcessSpanUnsafe(segment.Span, ref sum, ref n);
+                    }
+                    return sum + n;
                 }
-                pipe.Reader.Complete();
-                return sum + n;
+                finally {
+                    pipe.Reader.Complete();
+                }
             }
 
             var (produceTask, consumeTask) = (ProduceAsync(), ConsumeAsync());
