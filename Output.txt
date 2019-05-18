@@ -10,9 +10,9 @@ Ubuntu 18.04, .NET Core 3.0 preview 5:
 
 alex@AYUB:~/Projects/YetAnotherStupidBenchmark/DotNetCore3$ dotnet3 run -c Release
 File: /home/alex/Downloads/dotnet-sdk-3.0.100-preview5-011568-linux-x64.tar.gz (124.154 MB)
-  ComputeSum:      518434866130608 in 489.505 ms
-  ComputeSumAsync: 518434866130608 in 597.886 ms
-  OldComputeSum:   518434866130608 in 1170.544 ms
+  ComputeSum:      518434866130608 in 492.416 ms
+  ComputeSumAsync: 518434866130608 in 583.114 ms
+  OldComputeSum:   518434866130608 in 1235.177 ms
   Are equal?       True
 
 
@@ -20,9 +20,9 @@ Ubuntu 18.04, .NET Core 2.2:
 
 alex@AYUB:~/Projects/YetAnotherStupidBenchmark/DotNetCore2_2$ dotnet run -c Release
 File: /home/alex/Downloads/dotnet-sdk-3.0.100-preview5-011568-linux-x64.tar.gz (124.154 MB)
-  ComputeSum:      518434866130608 in 613.897 ms
-  ComputeSumAsync: 518434866130608 in 632.026 ms
-  OldComputeSum:   518434866130608 in 1387.348 ms
+  ComputeSum:      518434866130608 in 598.743 ms
+  ComputeSumAsync: 518434866130608 in 632.889 ms
+  OldComputeSum:   518434866130608 in 1482.032 ms
   Are equal?       True
 
 
