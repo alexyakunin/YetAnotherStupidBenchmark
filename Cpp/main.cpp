@@ -123,7 +123,6 @@ auto readRLEMmap(char* fileName) {
     close(fIn);
     return sum;
 }
-#endif
 
 auto readRLEMmapSIMD(char* fileName) {
     auto fIn = open(fileName, O_RDONLY | O_BINARY, 0644);
@@ -196,6 +195,7 @@ auto readRLEMmapSIMD(char* fileName) {
     return (int64_t) sum;
 }
 
+#endif
 
 
 int main() {
@@ -217,7 +217,7 @@ int main() {
     measure("readRLEBuffer", readRLEBuffer, fileName);
 #ifdef Unix
     measure("readRLEMmap", readRLEMmap, fileName);
-#endif
     measure("readRLEMmapSIMD", readRLEMmapSIMD, fileName);
+#endif
     return 0;
 }
