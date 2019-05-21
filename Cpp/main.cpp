@@ -131,7 +131,8 @@ int main() {
     };
 
 #ifdef Unix
-    char* fileName = (char*) "/home/alex/Downloads/dotnet-sdk-3.0.100-preview5-011568-linux-x64.tar.gz";
+    char* fileName = (char*) "/home/alex/Projects/YASB_Dan/rle.dat";
+//    char* fileName = (char*) "/home/alex/Downloads/dotnet-sdk-3.0.100-preview5-011568-linux-x64.tar.gz";
 #else
     char* fileName = (char*) "C:\\Downloads\\26_dump.zip";
 #endif

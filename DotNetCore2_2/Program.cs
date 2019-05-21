@@ -16,7 +16,8 @@ namespace YetAnotherStupidBenchmark
         public static void Main()
         {
             if (Environment.OSVersion.Platform == PlatformID.Unix) {
-                Run("/home/alex/Downloads/dotnet-sdk-3.0.100-preview5-011568-linux-x64.tar.gz");
+//                Run("/home/alex/.aliases");
+                Run("/home/alex/Projects/YASB_Dan/rle.dat");
             }
             else {
                 Run("C:\\Downloads\\dotnet-sdk-3.0.100-preview5-011568-win-x64.exe "); // ~ 130 MB -- warmup
