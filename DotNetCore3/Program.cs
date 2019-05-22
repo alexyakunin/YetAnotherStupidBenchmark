@@ -483,16 +483,13 @@ namespace YetAnotherStupidBenchmark
             return (sum, n);
         }
 
-
-        private static byte[] Mask7F = Enumerable.Repeat((byte) 0x7F, 32).ToArray();
-        private static byte[] Mask80 = Enumerable.Repeat((byte) 0x80, 32).ToArray();
-        
         private static unsafe (long, int) ComputeSumSimd(ReadOnlyMemory<byte> buffer, long sum, int n)
         {
             var span = buffer.Span;
-            var constants = stackalloc byte[] {0x7f, 0x80};
-            var mask0 = Avx2.BroadcastScalarToVector256(&constants[0]);
-            var mask1 = Avx2.BroadcastScalarToVector256(&constants[1]);
+            var b7f = (byte) 0x7F;
+            var b80 = (byte) 0x80;
+            var mask0 = Avx2.BroadcastScalarToVector256(&b7f);
+            var mask1 = Avx2.BroadcastScalarToVector256(&b80);
             var zero8 = Vector256<byte>.Zero;
             var zero64 = zero8.AsInt64();
             var s0 = zero64;
