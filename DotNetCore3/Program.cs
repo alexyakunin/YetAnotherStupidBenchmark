@@ -3,7 +3,10 @@ using System.Buffers;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
 using System.Threading;
 using System.Threading.Tasks;
 using static System.Console;
@@ -21,8 +24,8 @@ namespace YetAnotherStupidBenchmark
                 Run("/home/alex/Projects/YASB_Dan/rle.dat");
             }
             else {
-                Run("C:\\Downloads\\dotnet-sdk-3.0.100-preview5-011568-win-x64.exe ", true); // ~ 130 MB -- warmup
-                Run("C:\\Downloads\\26_dump.zip"); // ~ 1.7 GB
+                Run("C:\\Users\\Alex\\.gitconfig", true); // ~ 130 MB
+                Run("C:\\Downloads\\dotnet-sdk-3.0.100-preview5-011568-win-x64.exe"); // ~ 130 MB
             }
         }
         
@@ -33,9 +36,12 @@ namespace YetAnotherStupidBenchmark
             }
             Print($"File: {fileName} ({new FileInfo(fileName).Length / 1024.0 / 1024:f3} MB)");
             
-            var r0 = Measure(() => ComputeSimpleSum(fileName));
-            Print($"  Simple Sum (baseline):            {r0.Time.TotalMilliseconds:f3} ms");
+            var rb = Measure(() => ComputeSimpleSum(fileName));
+            Print($"  Simple Sum (baseline):            {rb.Time.TotalMilliseconds:f3} ms");
             
+            var r0 = Measure(() => ComputeSum(fileName, ComputeSumSimd));
+            Print($"  Unsafe Unrolled SIMD Loop Sum:    {r0.Time.TotalMilliseconds:f3} ms -> {r0.Result}");
+
             var r1 = Measure(() => ComputeSum(fileName, ComputeSumUnsafeUnrolled));
             Print($"  Unsafe Unrolled Loop Sum:         {r1.Time.TotalMilliseconds:f3} ms -> {r1.Result}");
             var r1a = Measure(() => ComputeSumAsync(fileName, ComputeSumUnsafeUnrolled).Result);
@@ -472,6 +478,72 @@ namespace YetAnotherStupidBenchmark
                 if ((b & 128) != 0) {
                     sum += n; 
                     n = 0;
+                }
+            }
+            return (sum, n);
+        }
+
+
+        private static byte[] Mask7F = Enumerable.Repeat((byte) 0x7F, 32).ToArray();
+        private static byte[] Mask80 = Enumerable.Repeat((byte) 0x80, 32).ToArray();
+        
+        private static unsafe (long, int) ComputeSumSimd(ReadOnlyMemory<byte> buffer, long sum, int n)
+        {
+            var span = buffer.Span;
+            var constants = stackalloc byte[] {0x7f, 0x80};
+            var mask0 = Avx2.BroadcastScalarToVector256(&constants[0]);
+            var mask1 = Avx2.BroadcastScalarToVector256(&constants[1]);
+            var zero8 = Vector256<byte>.Zero;
+            var zero64 = zero8.AsInt64();
+            var s0 = zero64;
+            var s1 = zero64;
+            var s2 = zero64;
+            var s3 = zero64;
+            fixed (byte* pStart = span) {
+                var pEnd = pStart + span.Length;
+                var pEnd32 = pEnd - 31;
+                var p = pStart;
+                while (p < pEnd32) {
+                    // Loop
+                    var a = Avx2.LoadVector256(p);
+                    var an = Avx2.LoadVector256(p + 1);
+                    var ann = Avx2.LoadVector256(p + 2);
+                    var b = Avx2.And(a, mask1);
+                    var bn = Avx2.And(an, mask1);
+                    var bnn = Avx2.And(ann, mask1);
+                    a = Avx2.And(a, mask0);
+                    var b0 = Avx2.CompareEqual(b, mask1);
+                    var a0 = Avx2.And(a, b0);
+                    var b1 = Avx2.CompareGreaterThan(b.AsSByte(), bn.AsSByte()).AsByte();
+                    var a1 = Avx2.And(a, b1);
+                    var bt = Avx2.Or(b, bn);
+                    var b2 = Avx2.CompareGreaterThan(bt.AsSByte(), mask1.AsSByte()).AsByte();
+                    var a2 = Avx2.And(a, b2);
+                    var btt = Avx2.Or(Avx2.Or(b, bn), bnn);
+                    var b3 = Avx2.CompareGreaterThan(btt.AsSByte(), mask1.AsSByte()).AsByte();
+                    var a3 = Avx2.And(a, b3);
+                    s0 = Avx2.Add(s0, Avx2.SumAbsoluteDifferences(a0, zero8).AsInt64());
+                    s1 = Avx2.Add(s0, Avx2.SumAbsoluteDifferences(a1, zero8).AsInt64());
+                    s2 = Avx2.Add(s0, Avx2.SumAbsoluteDifferences(a2, zero8).AsInt64());
+                    s3 = Avx2.Add(s0, Avx2.SumAbsoluteDifferences(a3, zero8).AsInt64());
+                    p += 32;
+                }
+
+                var s = Avx2.Add(
+                    Avx2.Add(s0, Avx2.ShiftLeftLogical(s1, 7)),
+                    Avx2.Add(Avx2.ShiftLeftLogical(s2, 14), Avx2.ShiftLeftLogical(s3, 21))
+                    );
+
+                n = 0;
+                sum += s.GetElement(0) + s.GetElement(1) + s.GetElement(2) + s.GetElement(3);
+                
+                while (p < pEnd) {
+                    var b = *p++;
+                    n = (b & 127) + (n << 7);
+                    if ((b & 128) != 0) {
+                        sum += n; 
+                        n = 0;
+                    }
                 }
             }
             return (sum, n);
