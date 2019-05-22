@@ -40,7 +40,7 @@ namespace YetAnotherStupidBenchmark
             Print($"  Simple Sum (baseline):            {rb.Time.TotalMilliseconds:f3} ms");
             
             var r0 = Measure(() => ComputeSum(fileName, ComputeSumSimd));
-            Print($"  Unsafe Unrolled SIMD Loop Sum:    {r0.Time.TotalMilliseconds:f3} ms -> {r0.Result}");
+            Print($"  Unsafe SIMD Loop Sum:             {r0.Time.TotalMilliseconds:f3} ms -> {r0.Result}");
 
             var r1 = Measure(() => ComputeSum(fileName, ComputeSumUnsafeUnrolled));
             Print($"  Unsafe Unrolled Loop Sum:         {r1.Time.TotalMilliseconds:f3} ms -> {r1.Result}");
