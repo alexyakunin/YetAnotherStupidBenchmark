@@ -6,7 +6,6 @@ using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.IO.Pipelines;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
@@ -586,28 +585,29 @@ namespace YetAnotherStupidBenchmark
             while (p + 36 <= pEnd) {
                 // Offset 0
                 var x = Avx2.LoadVector256(p);
+                // f indicates whether *p has flag (assuming p iterates through vector indexes);
+                // f[i] is either 0 (no flag) or -1 (i.e. all byte bits are set)
                 var f = Avx2.CompareGreaterThan(Vector256<sbyte>.Zero, x.AsSByte()).AsByte();
-                // f indicates whether *p has flag (assuming p iterates through vector indexes) 
                 x = Avx2.And(x, m7F);
 
                 // Offset 1
                 var x1 = Avx2.LoadVector256(p + 1);
                 var f1 = Avx2.CompareGreaterThan(Vector256<sbyte>.Zero, x1.AsSByte()).AsByte();
+                // f01 indicates whether *p flag sequence is (0,1); similarly, f[i] is either 0 or -1
                 var f01 = Avx2.CompareGreaterThan(f.AsSByte(), f1.AsSByte()).AsByte(); 
-                // f01 indicates whether *p flag sequence is (0,1)
                 
                 // Offset 2
                 var x2 = Avx2.LoadVector256(p + 2);
                 var f2 = Avx2.CompareGreaterThan(Vector256<sbyte>.Zero, x2.AsSByte()).AsByte();
                 var f00 = Avx2.Or(f, f1);
-                var f001 = Avx2.CompareGreaterThan(f00.AsSByte(), f2.AsSByte()).AsByte();
                 // f001 indicates whether *p flag sequence is (0,0,1)
+                var f001 = Avx2.CompareGreaterThan(f00.AsSByte(), f2.AsSByte()).AsByte();
 
                 var f000 = Avx2.Or(f00, f2);
-                var f0001 = Avx2.CompareGreaterThan(f000.AsSByte(), mFF.AsSByte()).AsByte();
                 // f0001 indicates whether *p flag sequence is (0,0,0,1)
                 // we assume here that the 4th byte always has a flag (i.e. the encoding
                 // is valid), so we don't read it.
+                var f0001 = Avx2.CompareGreaterThan(f000.AsSByte(), mFF.AsSByte()).AsByte();
 
                 sum0 = Avx2.Add(sum0, Avx2.SumAbsoluteDifferences(Avx2.And(x, f), Vector256<byte>.Zero).AsInt64());
                 sum7 = Avx2.Add(sum7, Avx2.SumAbsoluteDifferences(Avx2.And(x, f01), Vector256<byte>.Zero).AsInt64());
