@@ -3,8 +3,10 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.IO.Pipelines;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
@@ -74,10 +76,12 @@ namespace YetAnotherStupidBenchmark
             Print($"  Simple Sum (baseline):            {rb.Time.TotalMilliseconds:f3} ms");
 
             if (Avx2.IsSupported) {
-                var r0 = Measure(() => ComputeSum(fileName, ComputeSumSimd));
-                Print($"  Unsafe SIMD Loop Sum:             {r0.Time.TotalMilliseconds:f3} ms -> {r0.Result}");
-                var r0a = Measure(() => ComputeSumAsync(fileName, ComputeSumSimd).Result);
-                Print($"  Unsafe SIMD Loop Sum (async):     {r0a.Time.TotalMilliseconds:f3} ms -> {r0a.Result}");
+                var rsm = Measure(() => ComputeSumMMF(fileName, ComputeSumSimd));
+                Print($"  Unsafe SIMD Loop Sum (mmap):      {rsm.Time.TotalMilliseconds:f3} ms -> {rsm.Result}");
+                var rsa = Measure(() => ComputeSumAsync(fileName, ComputeSumSimd).Result);
+                Print($"  Unsafe SIMD Loop Sum (async):     {rsa.Time.TotalMilliseconds:f3} ms -> {rsa.Result}");
+                var rs = Measure(() => ComputeSum(fileName, ComputeSumSimd));
+                Print($"  Unsafe SIMD Loop Sum:             {rs.Time.TotalMilliseconds:f3} ms -> {rs.Result}");
             }
 
             var r1 = Measure(() => ComputeSum(fileName, ComputeSumUnsafeUnrolled));
@@ -133,6 +137,15 @@ namespace YetAnotherStupidBenchmark
                     return sum + n;
                 (sum, n) = sumComputer(buffer.Slice(0, count), sum, n);
             }
+        }
+
+        public static long ComputeSumMMF(string fileName, Func<IntPtr, long, long, int, (long, int)> sumComputer)
+        {
+            using var f = MemoryMappedFile.CreateFromFile(fileName, FileMode.Open);
+            using var fAccessor = f.CreateViewAccessor();
+            var fHandle = fAccessor.SafeMemoryMappedViewHandle;
+            var (sum, _) = sumComputer(fHandle.DangerousGetHandle(), (long) fHandle.ByteLength, 0, 0);
+            return sum;
         }
 
         public static async Task<long> ComputeSumAsync(string fileName, Func<ReadOnlyMemory<byte>, long, int, (long, int)> sumComputer, CancellationToken ct = default)
@@ -536,6 +549,13 @@ namespace YetAnotherStupidBenchmark
         private static unsafe (long, int) ComputeSumSimd(ReadOnlyMemory<byte> buffer, long sum, int n)
         {
             var span = buffer.Span;
+            fixed (byte* pStart = span) {
+                return ComputeSumSimd(new IntPtr(pStart), span.Length, sum, n);
+            }
+        }
+
+        private static unsafe (long, int) ComputeSumSimd(IntPtr start, long length, long sum, int n)
+        {
             var b7F = (byte) 127;
             var bFF = (byte) 255;
             var m7F = Avx2.BroadcastScalarToVector256(&b7F);
@@ -544,73 +564,72 @@ namespace YetAnotherStupidBenchmark
             var sum7 = Vector256<long>.Zero;
             var sum14 = Vector256<long>.Zero;
             var sum21 = Vector256<long>.Zero;
-            fixed (byte* pStart = span) {
-                var pEnd = pStart + span.Length;
-                var p = pStart;
 
-                // The following SIMD loop assumes n == 0 when it starts,
-                // so we have to reach this point "manually" here
-                if (n != 0) {
-                    while (p < pEnd) {
-                        var b = *p++;
-                        n = (b & 127) + (n << 7);
-                        if ((b & 128) != 0) {
-                            sum += n;
-                            n = 0;
-                            break;
-                        }
-                    }
-                }
+            var p = (byte*) start;
+            var pEnd = p + length;
 
-                // SIMD loop
-                while (p + 36 <= pEnd) {
-                    // Offset 0
-                    var x = Avx2.LoadVector256(p);
-                    var f = Avx2.CompareGreaterThan(Vector256<sbyte>.Zero, x.AsSByte()).AsByte();
-                    // f indicates whether *p has flag (assuming p iterates through vector indexes) 
-                    x = Avx2.And(x, m7F);
-
-                    // Offset 1
-                    var x1 = Avx2.LoadVector256(p + 1);
-                    var f1 = Avx2.CompareGreaterThan(Vector256<sbyte>.Zero, x1.AsSByte()).AsByte();
-                    var f01 = Avx2.CompareGreaterThan(f.AsSByte(), f1.AsSByte()).AsByte(); 
-                    // f01 indicates whether *p flag sequence is (0,1)
-                    
-                    // Offset 2
-                    var x2 = Avx2.LoadVector256(p + 2);
-                    var f2 = Avx2.CompareGreaterThan(Vector256<sbyte>.Zero, x2.AsSByte()).AsByte();
-                    var f00 = Avx2.Or(f, f1);
-                    var f001 = Avx2.CompareGreaterThan(f00.AsSByte(), f2.AsSByte()).AsByte();
-                    // f001 indicates whether *p flag sequence is (0,0,1)
-
-                    var f000 = Avx2.Or(f00, f2);
-                    var f0001 = Avx2.CompareGreaterThan(f000.AsSByte(), mFF.AsSByte()).AsByte();
-                    // f0001 indicates whether *p flag sequence is (0,0,0,1)
-                    // we assume here that the 4th byte always has a flag (i.e. the encoding
-                    // is valid), so we don't read it.
-
-                    sum0 = Avx2.Add(sum0, Avx2.SumAbsoluteDifferences(Avx2.And(x, f), Vector256<byte>.Zero).AsInt64());
-                    sum7 = Avx2.Add(sum7, Avx2.SumAbsoluteDifferences(Avx2.And(x, f01), Vector256<byte>.Zero).AsInt64());
-                    sum14 = Avx2.Add(sum14, Avx2.SumAbsoluteDifferences(Avx2.And(x, f001), Vector256<byte>.Zero).AsInt64());
-                    sum21 = Avx2.Add(sum21, Avx2.SumAbsoluteDifferences(Avx2.And(x, f0001), Vector256<byte>.Zero).AsInt64());
-
-                    p += 32;
-                }
-
-                var s07 = Avx2.Add(sum0, Avx2.ShiftLeftLogical(sum7, 7));
-                var s1421 = Avx2.Add(Avx2.ShiftLeftLogical(sum14, 14), Avx2.ShiftLeftLogical(sum21, 21));
-                var s = Avx2.Add(s07, s1421);
-
-                sum += s.GetElement(0) + s.GetElement(1) + s.GetElement(2) + s.GetElement(3);
-                n = 0; // Fine assuming we'll process 4+ items in the following loop
-                
+            // The following SIMD loop assumes n == 0 when it starts,
+            // so we have to reach this point "manually" here
+            if (n != 0) {
                 while (p < pEnd) {
                     var b = *p++;
                     n = (b & 127) + (n << 7);
                     if ((b & 128) != 0) {
-                        sum += n; 
+                        sum += n;
                         n = 0;
+                        break;
                     }
+                }
+            }
+
+            // SIMD loop
+            while (p + 36 <= pEnd) {
+                // Offset 0
+                var x = Avx2.LoadVector256(p);
+                var f = Avx2.CompareGreaterThan(Vector256<sbyte>.Zero, x.AsSByte()).AsByte();
+                // f indicates whether *p has flag (assuming p iterates through vector indexes) 
+                x = Avx2.And(x, m7F);
+
+                // Offset 1
+                var x1 = Avx2.LoadVector256(p + 1);
+                var f1 = Avx2.CompareGreaterThan(Vector256<sbyte>.Zero, x1.AsSByte()).AsByte();
+                var f01 = Avx2.CompareGreaterThan(f.AsSByte(), f1.AsSByte()).AsByte(); 
+                // f01 indicates whether *p flag sequence is (0,1)
+                
+                // Offset 2
+                var x2 = Avx2.LoadVector256(p + 2);
+                var f2 = Avx2.CompareGreaterThan(Vector256<sbyte>.Zero, x2.AsSByte()).AsByte();
+                var f00 = Avx2.Or(f, f1);
+                var f001 = Avx2.CompareGreaterThan(f00.AsSByte(), f2.AsSByte()).AsByte();
+                // f001 indicates whether *p flag sequence is (0,0,1)
+
+                var f000 = Avx2.Or(f00, f2);
+                var f0001 = Avx2.CompareGreaterThan(f000.AsSByte(), mFF.AsSByte()).AsByte();
+                // f0001 indicates whether *p flag sequence is (0,0,0,1)
+                // we assume here that the 4th byte always has a flag (i.e. the encoding
+                // is valid), so we don't read it.
+
+                sum0 = Avx2.Add(sum0, Avx2.SumAbsoluteDifferences(Avx2.And(x, f), Vector256<byte>.Zero).AsInt64());
+                sum7 = Avx2.Add(sum7, Avx2.SumAbsoluteDifferences(Avx2.And(x, f01), Vector256<byte>.Zero).AsInt64());
+                sum14 = Avx2.Add(sum14, Avx2.SumAbsoluteDifferences(Avx2.And(x, f001), Vector256<byte>.Zero).AsInt64());
+                sum21 = Avx2.Add(sum21, Avx2.SumAbsoluteDifferences(Avx2.And(x, f0001), Vector256<byte>.Zero).AsInt64());
+
+                p += 32;
+            }
+
+            var s07 = Avx2.Add(sum0, Avx2.ShiftLeftLogical(sum7, 7));
+            var s1421 = Avx2.Add(Avx2.ShiftLeftLogical(sum14, 14), Avx2.ShiftLeftLogical(sum21, 21));
+            var s = Avx2.Add(s07, s1421);
+
+            sum += s.GetElement(0) + s.GetElement(1) + s.GetElement(2) + s.GetElement(3);
+            n = 0; // Fine assuming we'll process 4+ items in the following loop
+            
+            while (p < pEnd) {
+                var b = *p++;
+                n = (b & 127) + (n << 7);
+                if ((b & 128) != 0) {
+                    sum += n; 
+                    n = 0;
                 }
             }
             return (sum, n);
