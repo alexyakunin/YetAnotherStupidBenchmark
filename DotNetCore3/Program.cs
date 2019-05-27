@@ -16,7 +16,7 @@ namespace YetAnotherStupidBenchmark
 {
     public static class Benchmark
     {
-        public static int MinBufferSize = 1 << 17;
+        public static int MinBufferSize = 256 * 1024; // 256 MB
 
         public static void Main()
         {
@@ -76,6 +76,8 @@ namespace YetAnotherStupidBenchmark
             if (Avx2.IsSupported) {
                 var r0 = Measure(() => ComputeSum(fileName, ComputeSumSimd));
                 Print($"  Unsafe SIMD Loop Sum:             {r0.Time.TotalMilliseconds:f3} ms -> {r0.Result}");
+                var r0a = Measure(() => ComputeSumAsync(fileName, ComputeSumSimd).Result);
+                Print($"  Unsafe SIMD Loop Sum (async):     {r0a.Time.TotalMilliseconds:f3} ms -> {r0a.Result}");
             }
 
             var r1 = Measure(() => ComputeSum(fileName, ComputeSumUnsafeUnrolled));
@@ -136,7 +138,7 @@ namespace YetAnotherStupidBenchmark
         public static async Task<long> ComputeSumAsync(string fileName, Func<ReadOnlyMemory<byte>, long, int, (long, int)> sumComputer, CancellationToken ct = default)
         {
             await using var fs = new FileStream(fileName, FileMode.Open);
-            var pipe = new Pipe();
+            var pipe = new Pipe(new PipeOptions(minimumSegmentSize: MinBufferSize, useSynchronizationContext: false));
 
             async Task ProduceAsync()
             {
