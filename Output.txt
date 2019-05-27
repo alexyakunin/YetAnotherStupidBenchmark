@@ -1,65 +1,22 @@
 Ubuntu 18.04, GCC:
 
-alex@AYUB:~/Projects/YetAnotherStupidBenchmark/Cpp/cmake-build-release$ ./Cpp 
-readRLEByte: 518434866133189 in 525 ms
-readRLEBuffer: 518434866130587 in 470 ms
-readRLEMmap: 518434866130587 in 468 ms
+alex@AYUB:~/Projects/YASB_AY/Cpp$ ./run.sh 
+~/Projects/YASB_AY/Cpp/cmake-build-release ~/Projects/YASB_AY/Cpp
+[100%] Built target Cpp
+readRLEByte: 14999898054814 in 1205 ms
+readRLEBuffer: 14999898054814 in 658 ms
+readRLEMmap: 14999898054814 in 619 ms
+readRLEMmapSIMD: 14999898054814 in 90 ms
 
 
 Ubuntu 18.04, .NET Core 3.0 preview 5:
 
-alex@AYUB:~/Projects/YetAnotherStupidBenchmark/DotNetCore3$ dotnet3 run -c Release
-File: /home/alex/Downloads/dotnet-sdk-3.0.100-preview5-011568-linux-x64.tar.gz (124.154 MB)
-  ComputeSum:      518434866130608 in 492.416 ms
-  ComputeSumAsync: 518434866130608 in 583.114 ms
-  OldComputeSum:   518434866130608 in 1235.177 ms
-  Are equal?       True
-
-
-Ubuntu 18.04, .NET Core 2.2:
-
-alex@AYUB:~/Projects/YetAnotherStupidBenchmark/DotNetCore2_2$ dotnet run -c Release
-File: /home/alex/Downloads/dotnet-sdk-3.0.100-preview5-011568-linux-x64.tar.gz (124.154 MB)
-  ComputeSum:      518434866130608 in 598.743 ms
-  ComputeSumAsync: 518434866130608 in 632.889 ms
-  OldComputeSum:   518434866130608 in 1482.032 ms
-  Are equal?       True
-
-
-Windows, GCC on MinGW:
-
-C:\Projects\YetAnotherStupidBenchmark\Cpp>Run.bat
-readRLEByte: 6716389968175661 in 6271 ms
-readRLEBuffer: 6716388756365997 in 5991 ms
-
-
-Windows, .NET Core 3 preview 5:
-
-C:\Projects\YetAnotherStupidBenchmark\DotNetCore3>dotnet run -c Release
-File: C:\Downloads\node-v9.9.0-x64.msi (15.879 MB)
-  ComputeSum:      64645236628323 in 58.927 ms
-  ComputeSumAsync: 64645236628323 in 96.788 ms
-  OldComputeSum:   64645236628323 in 151.153 ms
-  Are equal?       True
-File: C:\Downloads\26_dump.zip (1717.394 MB)
-  ComputeSum:      6716388133167789 in 6311.156 ms
-  ComputeSumAsync: 6716388133167789 in 7024.558 ms
-  OldComputeSum:   6716388133167789 in 17048.505 ms
-  Are equal?       True
-
-
-Windwos, .NET Core 2.2:
-
-C:\Projects\YetAnotherStupidBenchmark\DotNetCore2_2>dotnet run -c Release
-File: C:\Downloads\node-v9.9.0-x64.msi (15.879 MB)
-  ComputeSum:      64645236628323 in 97.650 ms
-  ComputeSumAsync: 64645236628323 in 127.818 ms
-  OldComputeSum:   64645236628323 in 160.163 ms
-  Are equal?       True
-File: C:\Downloads\26_dump.zip (1717.394 MB)
-  ComputeSum:      6716388133167789 in 6094.666 ms
-  ComputeSumAsync: 6716388133167789 in 6650.097 ms
-  OldComputeSum:   6716388133167789 in 18623.404 ms
-  Are equal?       True
-
-
+alex@AYUB:~/Projects/YASB_AY/DotNetCore$ ./run.sh 
+File: /home/alex/Projects/YASB_Dan/rle.dat (811.071 MB)
+  Simple Sum (baseline):            103.858 ms
+  Unsafe SIMD Loop Sum:             119.673 ms -> 14999898054814
+  Unsafe SIMD Loop Sum (async):     102.607 ms -> 14999898054814
+  Unsafe Unrolled Loop Sum:         651.635 ms -> 14999898054814
+  Unsafe Unrolled Loop Sum (async): 670.262 ms -> 14999898054814
+  Unrolled Loop Sum:                759.213 ms -> 14999898054814
+  Original Sum:                     3487.462 ms -> 14999898054814
