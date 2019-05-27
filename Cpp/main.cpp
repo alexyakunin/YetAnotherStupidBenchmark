@@ -197,27 +197,28 @@ auto readRLEMmapSIMD(char* fileName) {
 
 #endif
 
+void measure(string fnName, int64_t (&fn)(char*), const string fileName, bool warmup) {
+    auto start = chrono::steady_clock::now();
+    auto sum = (fn) ((char*) fileName.c_str());
+    auto end = chrono::steady_clock::now();
+    auto duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+    if (!warmup)
+        cout << "  " << fnName << ": " << sum << " in " << duration << " ms" << endl;
+};
 
-int main() {
-    auto measure = [&](string fnName, int64_t (&fn)(char*), char* fileName) {
-        auto start = chrono::steady_clock::now();
-        auto sum = (fn) (fileName);
-        auto end = chrono::steady_clock::now();
-        auto duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
-        cout << fnName << ": " << sum << " in " << duration << " ms" << endl;
-    };
-
-#ifdef Unix
-    char* fileName = (char*) "/home/alex/Projects/YASB_Dan/rle.dat";
-//    char* fileName = (char*) "/home/alex/Downloads/dotnet-sdk-3.0.100-preview5-011568-linux-x64.tar.gz";
-#else
-    char* fileName = (char*) "C:\\Downloads\\26_dump.zip";
-#endif
-    measure("readRLEByte", readRLEByte, fileName);
-    measure("readRLEBuffer", readRLEBuffer, fileName);
+void measureAll(const string fileName, bool warmup = false) {
+    if (!warmup)
+        cout << "File: " << fileName << endl;
+    measure("readRLEByte", readRLEByte, fileName, warmup);
+    measure("readRLEBuffer", readRLEBuffer, fileName, warmup);
 #ifdef Unix
     measure("readRLEMmap", readRLEMmap, fileName);
     measure("readRLEMmapSIMD", readRLEMmapSIMD, fileName);
 #endif
+}
+
+int main() {
+    measureAll("../../Warmup.dat", true);
+    measureAll("../../Test.dat");
     return 0;
 }

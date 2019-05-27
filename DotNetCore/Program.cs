@@ -6,6 +6,7 @@ using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.IO.Pipelines;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
@@ -18,19 +19,50 @@ namespace YetAnotherStupidBenchmark
     public static class Benchmark
     {
         public static int MinBufferSize = 256 * 1024; // 256 MB
+        public static string ExePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        public static string TestFilePath = Path.GetFullPath(Path.Join(ExePath, "..\\..\\..\\..\\Test.dat"));
+        public static string WarmupFilePath = Path.Join(Path.GetDirectoryName(TestFilePath), "Warmup.dat");
 
-        public static void Main()
+
+        public static void Main(string[] args)
         {
 //            Test();
 //            return;
-            if (Environment.OSVersion.Platform == PlatformID.Unix) {
-                Run("/home/alex/.profile", true);
-                Run("/home/alex/Projects/YASB_Dan/rle.dat");
+            if (string.Join(" ", args).ToLowerInvariant() == "-g") {
+                GenerateTestFile(WarmupFilePath, 100_000);
+                GenerateTestFile(TestFilePath, 300_000_000);
+                return;
             }
-            else {
-                Run("C:\\Users\\Alex\\.gitconfig", true); // ~ 130 MB
-                Run("C:\\Downloads\\dotnet-sdk-3.0.100-preview5-011568-win-x64.exe"); // ~ 130 MB
+            Run(WarmupFilePath, true);
+            Run(TestFilePath);
+        }
+
+        private static void GenerateTestFile(string filePath, long valueCount, int maxValue = 1_000_000)
+        {
+            const int PacketSize = 1_000;
+            var rnd = new Random(15);
+            long Min(long a, long b) => a < b ? a : b;
+            
+            WriteLine($"File: {filePath}");
+
+            using var fs = new FileStream(filePath, FileMode.OpenOrCreate);
+            fs.SetLength(0);
+            var (l, sum) = (0L, 0L);
+            while (l < valueCount) {
+                var packetSize = (int) Min(PacketSize, valueCount - l);
+                var values = Enumerable
+                    .Range(0, packetSize)
+                    .Select(_ => rnd.Next(maxValue))
+                    .ToArray();
+                sum += values.Sum();
+                var buffer = values.Encode().ToArray();
+                fs.Write(buffer);
+                l += packetSize;
             }
+
+            WriteLine($"  Size:        {fs.Position / 1024.0 / 1024:f3} MB");
+            WriteLine($"  Value count: {l}");
+            WriteLine($"  Sum:         {sum}");
         }
 
         public static void Test()
@@ -49,7 +81,6 @@ namespace YetAnotherStupidBenchmark
         public static IEnumerable<byte> Encode(this IEnumerable<int> source)
         {
             const uint maxValue = (1 << (7 * 4)) - 1;
-            const int ff = 255;
             foreach (var n in source) {
                 if (maxValue < (uint) n)
                     throw new ArgumentException($"One of values in source sequence is too large ({(uint) n} > {maxValue}).");

@@ -2,5 +2,5 @@
 
 pushd cmake-build-release
 make
-./Cpp
+./Cpp "$@"
 popd

@@ -33,3 +33,6 @@ node_modules/
 # C++
 /cmake-build-*/
 */CMakeFiles/
+
+# Test data file
+*.dat

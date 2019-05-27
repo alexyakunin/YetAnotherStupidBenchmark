@@ -2,4 +2,4 @@
 
 PATH=$HOME/dotnet:$PATH
 DOTNET_ROOT=$HOME/dotnet
-dotnet run -c Release
+dotnet run -c Release -- "$@"
