@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
@@ -13,12 +14,14 @@ using static System.Console;
 
 namespace YetAnotherStupidBenchmark
 {
-    class Benchmark
+    public static class Benchmark
     {
         public static int MinBufferSize = 1 << 17;
 
         public static void Main()
         {
+//            Test();
+//            return;
             if (Environment.OSVersion.Platform == PlatformID.Unix) {
                 Run("/home/alex/.profile", true);
                 Run("/home/alex/Projects/YASB_Dan/rle.dat");
@@ -26,6 +29,37 @@ namespace YetAnotherStupidBenchmark
             else {
                 Run("C:\\Users\\Alex\\.gitconfig", true); // ~ 130 MB
                 Run("C:\\Downloads\\dotnet-sdk-3.0.100-preview5-011568-win-x64.exe"); // ~ 130 MB
+            }
+        }
+
+        public static void Test()
+        {
+            const int maxValue = (1 << (7 * 4)) - 1;
+            var rnd = new Random(1);
+            var buffer = Enumerable.Range(0, 4000).Select(_ => rnd.Next(maxValue)).Encode().ToArray().AsMemory();
+            var r1 = ComputeSum(buffer, 0, 0);
+            var r2 = ComputeSumSimd(buffer, 0, 0);
+            WriteLine($"r1 = {r1}");
+            WriteLine($"r2 = {r2}");
+            if (r1 != r2)
+                throw new ApplicationException("SIMD version doesn't work properly.");
+        }
+
+        public static IEnumerable<byte> Encode(this IEnumerable<int> source)
+        {
+            const uint maxValue = (1 << (7 * 4)) - 1;
+            const int ff = 255;
+            foreach (var n in source) {
+                if (maxValue < (uint) n)
+                    throw new ArgumentException($"One of values in source sequence is too large ({(uint) n} > {maxValue}).");
+                var writing = false;
+                for (var i = 21; i >= 0; i -= 7) {
+                    var last = i == 0;
+                    var o = (byte) (n >> i & 0x7f | (last ? 128 : 0));
+                    writing |= o != 0 || last;
+                    if (writing)
+                        yield return o;
+                }
             }
         }
         
@@ -36,7 +70,7 @@ namespace YetAnotherStupidBenchmark
             }
             Print($"File: {fileName} ({new FileInfo(fileName).Length / 1024.0 / 1024:f3} MB)");
             
-            var rb = Measure(() => ComputeSimpleSum(fileName));
+            var rb = Measure(() => ComputeBaseline(fileName));
             Print($"  Simple Sum (baseline):            {rb.Time.TotalMilliseconds:f3} ms");
             
             var r0 = Measure(() => ComputeSum(fileName, ComputeSumSimd));
@@ -63,7 +97,7 @@ namespace YetAnotherStupidBenchmark
             return (result, sw.Elapsed); 
         }
 
-        public static long ComputeSimpleSum(string fileName)
+        public static long ComputeBaseline(string fileName)
         {
             using var fs = new FileStream(fileName, FileMode.Open);
             using var lease = MemoryPool<byte>.Shared.Rent(MinBufferSize);
@@ -74,7 +108,7 @@ namespace YetAnotherStupidBenchmark
                 var count = fs.Read(buffer.Span);
                 if (count == 0)
                     return sum;
-                sum += SimpleSum(buffer.Span.Slice(0, count));
+                sum += BaselineSum(buffer.Span.Slice(0, count));
             }
         }
 
@@ -153,23 +187,11 @@ namespace YetAnotherStupidBenchmark
             }
         }
 
-        private static long SimpleSum(Span<byte> buffer)
+        private static long BaselineSum(Span<byte> buffer)
         {
             var sum = 0L;
             foreach (var value in MemoryMarshal.Cast<byte, long>(buffer))
                 sum += value;
-            return sum;
-        }
-
-        private static unsafe long SimpleSum2(Span<byte> buffer)
-        {
-            var sum = 0L;
-            fixed (byte* pStart = buffer) {
-                var pEnd = pStart + buffer.Length - 7;
-                var p = (long*) pStart;
-                while (p < pEnd) 
-                    sum += *p++;
-            }
             return sum;
         }
 
@@ -486,43 +508,41 @@ namespace YetAnotherStupidBenchmark
         private static unsafe (long, int) ComputeSumSimd(ReadOnlyMemory<byte> buffer, long sum, int n)
         {
             var span = buffer.Span;
-            var b7f = (byte) 0x7F;
-            var b80 = (byte) 0x80;
-            var mask0 = Avx2.BroadcastScalarToVector256(&b7f);
-            var mask1 = Avx2.BroadcastScalarToVector256(&b80);
-            var zero8 = Vector256<byte>.Zero;
-            var zero64 = zero8.AsInt64();
-            var s0 = zero64;
-            var s1 = zero64;
-            var s2 = zero64;
-            var s3 = zero64;
+            var b7F = (byte) 127;
+            var bFF = (byte) 255;
+            var m7F = Avx2.BroadcastScalarToVector256(&b7F);
+            var mFF = Avx2.BroadcastScalarToVector256(&bFF);
+            var s0 = Vector256<long>.Zero;
+            var s1 = Vector256<long>.Zero;
+            var s2 = Vector256<long>.Zero;
+            var s3 = Vector256<long>.Zero;
             fixed (byte* pStart = span) {
                 var pEnd = pStart + span.Length;
-                var pEnd32 = pEnd - 31;
                 var p = pStart;
-                while (p < pEnd32) {
-                    // Loop
-                    var a = Avx2.LoadVector256(p);
-                    var an = Avx2.LoadVector256(p + 1);
-                    var ann = Avx2.LoadVector256(p + 2);
-                    var b = Avx2.And(a, mask1);
-                    var bn = Avx2.And(an, mask1);
-                    var bnn = Avx2.And(ann, mask1);
-                    a = Avx2.And(a, mask0);
-                    var b0 = Avx2.CompareEqual(b, mask1);
-                    var a0 = Avx2.And(a, b0);
-                    var b1 = Avx2.CompareGreaterThan(b.AsSByte(), bn.AsSByte()).AsByte();
-                    var a1 = Avx2.And(a, b1);
-                    var bt = Avx2.Or(b, bn);
-                    var b2 = Avx2.CompareGreaterThan(bt.AsSByte(), mask1.AsSByte()).AsByte();
-                    var a2 = Avx2.And(a, b2);
-                    var btt = Avx2.Or(Avx2.Or(b, bn), bnn);
-                    var b3 = Avx2.CompareGreaterThan(btt.AsSByte(), mask1.AsSByte()).AsByte();
-                    var a3 = Avx2.And(a, b3);
-                    s0 = Avx2.Add(s0, Avx2.SumAbsoluteDifferences(a0, zero8).AsInt64());
-                    s1 = Avx2.Add(s0, Avx2.SumAbsoluteDifferences(a1, zero8).AsInt64());
-                    s2 = Avx2.Add(s0, Avx2.SumAbsoluteDifferences(a2, zero8).AsInt64());
-                    s3 = Avx2.Add(s0, Avx2.SumAbsoluteDifferences(a3, zero8).AsInt64());
+                while (p + 35 <= pEnd) {
+                    var x = Avx2.LoadVector256(p);
+                    var f = Avx2.CompareGreaterThan(Vector256<sbyte>.Zero, x.AsSByte()).AsByte();
+                    x = Avx2.And(x, m7F);
+                    var a0 = Avx2.And(x, f);
+                    s0 = Avx2.Add(s0, Avx2.SumAbsoluteDifferences(a0, Vector256<byte>.Zero).AsInt64());
+
+                    var x1 = Avx2.LoadVector256(p + 1);
+                    var f1 = Avx2.CompareGreaterThan(Vector256<sbyte>.Zero, x1.AsSByte()).AsByte();
+                    var f01 = Avx2.CompareGreaterThan(f.AsSByte(), f1.AsSByte()).AsByte(); // prev 0 -> next 1
+                    var a1 = Avx2.And(x, f01);
+                    s1 = Avx2.Add(s1, Avx2.SumAbsoluteDifferences(a1, Vector256<byte>.Zero).AsInt64());
+
+                    var x2 = Avx2.LoadVector256(p + 2);
+                    var f2 = Avx2.CompareGreaterThan(Vector256<sbyte>.Zero, x2.AsSByte()).AsByte();
+                    var f00 = Avx2.Or(f, f1);
+                    var f001 = Avx2.CompareGreaterThan(f00.AsSByte(), f2.AsSByte()).AsByte();
+                    var a2 = Avx2.And(x, f001);
+                    s2 = Avx2.Add(s2, Avx2.SumAbsoluteDifferences(a2, Vector256<byte>.Zero).AsInt64());
+                    
+                    var f000 = Avx2.Or(f00, f2);
+                    var f0001 = Avx2.CompareGreaterThan(f000.AsSByte(), mFF.AsSByte()).AsByte();
+                    var a3 = Avx2.And(x, f0001);
+                    s3 = Avx2.Add(s3, Avx2.SumAbsoluteDifferences(a3, Vector256<byte>.Zero).AsInt64());
                     p += 32;
                 }
 
