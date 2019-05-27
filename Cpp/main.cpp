@@ -212,8 +212,8 @@ void measureAll(const string fileName, bool warmup = false) {
     measure("readRLEByte", readRLEByte, fileName, warmup);
     measure("readRLEBuffer", readRLEBuffer, fileName, warmup);
 #ifdef Unix
-    measure("readRLEMmap", readRLEMmap, fileName);
-    measure("readRLEMmapSIMD", readRLEMmapSIMD, fileName);
+    measure("readRLEMmap", readRLEMmap, fileName, warmup);
+    measure("readRLEMmapSIMD", readRLEMmapSIMD, fileName, warmup);
 #endif
 }
 

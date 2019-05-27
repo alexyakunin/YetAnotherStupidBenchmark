@@ -1,34 +1,30 @@
 Ubuntu 18.04, GCC:
 
-alex@AYUB:~/Projects/YASB_AY/Cpp$ ./run.sh 
-~/Projects/YASB_AY/Cpp/cmake-build-release ~/Projects/YASB_AY/Cpp
-[100%] Built target Cpp
-readRLEByte: 14999898054814 in 1205 ms
-readRLEBuffer: 14999898054814 in 658 ms
-readRLEMmap: 14999898054814 in 619 ms
-readRLEMmapSIMD: 14999898054814 in 90 ms
+File: ../../Test.dat
+  readRLEByte: 150007424900848 in 1060 ms
+  readRLEBuffer: 150007424900848 in 428 ms
+  readRLEMmap: 150007424900848 in 394 ms
+  readRLEMmapSIMD: 150007424900848 in 95 ms
 
 
 Ubuntu 18.04, .NET Core 3.0 preview 5:
 
-alex@AYUB:~/Projects/YASB_AY/DotNetCore$ ./run.sh 
-File: /home/alex/Projects/YASB_Dan/rle.dat (811.071 MB)
-  Simple Sum (baseline):            105.099 ms
-  Unsafe SIMD Loop Sum (mmap):      96.610 ms -> 14999898054814
-  Unsafe SIMD Loop Sum (async):     108.790 ms -> 14999898054814
-  Unsafe SIMD Loop Sum:             122.011 ms -> 14999898054814
-  Unsafe Unrolled Loop Sum:         660.647 ms -> 14999898054814
-  Unsafe Unrolled Loop Sum (async): 648.943 ms -> 14999898054814
-  Unrolled Loop Sum:                790.228 ms -> 14999898054814
-  Original Sum:                     3557.661 ms -> 14999898054814
+File: /home/alex/Projects/YASB_AY/Test.dat (853.583 MB)
+  Simple Sum (baseline):            123.109 ms
+  Unsafe SIMD Loop Sum (mmap):      101.234 ms -> 150007424900848
+  Unsafe SIMD Loop Sum (async):     113.267 ms -> 150007424900848
+  Unsafe SIMD Loop Sum:             130.059 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum:         462.129 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum (async): 416.415 ms -> 150007424900848
+  Unrolled Loop Sum:                587.737 ms -> 150007424900848
+  Original Sum:                     3378.916 ms -> 150007424900848
 
 
 Windows 10, GCC:
 
-C:\Projects\YetAnotherStupidBenchmark\Cpp>Run.bat
 File: ../../Test.dat
-readRLEByte: 150007424900848 in 1032 ms
-readRLEBuffer: 150007424900848 in 546 ms
+  readRLEByte: 150007424900848 in 1032 ms
+  readRLEBuffer: 150007424900848 in 546 ms
 
 
 Windows 10, .NET Core 3.0 preview 5:

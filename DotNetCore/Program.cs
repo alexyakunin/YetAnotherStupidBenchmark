@@ -20,7 +20,7 @@ namespace YetAnotherStupidBenchmark
     {
         public static int MinBufferSize = 256 * 1024; // 256 MB
         public static string ExePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        public static string TestFilePath = Path.GetFullPath(Path.Join(ExePath, "..\\..\\..\\..\\Test.dat"));
+        public static string TestFilePath = Path.GetFullPath(Path.Join(ExePath, "../../../../Test.dat"));
         public static string WarmupFilePath = Path.Join(Path.GetDirectoryName(TestFilePath), "Warmup.dat");
 
 
