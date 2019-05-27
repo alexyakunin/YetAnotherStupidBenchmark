@@ -13,10 +13,11 @@ Ubuntu 18.04, .NET Core 3.0 preview 5:
 
 alex@AYUB:~/Projects/YASB_AY/DotNetCore$ ./run.sh 
 File: /home/alex/Projects/YASB_Dan/rle.dat (811.071 MB)
-  Simple Sum (baseline):            103.858 ms
-  Unsafe SIMD Loop Sum:             119.673 ms -> 14999898054814
-  Unsafe SIMD Loop Sum (async):     102.607 ms -> 14999898054814
-  Unsafe Unrolled Loop Sum:         651.635 ms -> 14999898054814
-  Unsafe Unrolled Loop Sum (async): 670.262 ms -> 14999898054814
-  Unrolled Loop Sum:                759.213 ms -> 14999898054814
-  Original Sum:                     3487.462 ms -> 14999898054814
+  Simple Sum (baseline):            105.099 ms
+  Unsafe SIMD Loop Sum (mmap):      96.610 ms -> 14999898054814
+  Unsafe SIMD Loop Sum (async):     108.790 ms -> 14999898054814
+  Unsafe SIMD Loop Sum:             122.011 ms -> 14999898054814
+  Unsafe Unrolled Loop Sum:         660.647 ms -> 14999898054814
+  Unsafe Unrolled Loop Sum (async): 648.943 ms -> 14999898054814
+  Unrolled Loop Sum:                790.228 ms -> 14999898054814
+  Original Sum:                     3557.661 ms -> 14999898054814
