@@ -1,0 +1,77 @@
+.NET Core 3.1:
+File: /home/alex/Projects/YASB_AY/Test.dat (853.583 MB)
+  Simple Sum (baseline):            96.303 ms
+  Unsafe SIMD Loop Sum (mmap):      107.324 ms -> 150007424900848
+  Unsafe SIMD Loop Sum (async):     117.630 ms -> 150007424900848
+  Unsafe SIMD Loop Sum:             120.286 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum:         529.611 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum (async): 515.805 ms -> 150007424900848
+  Unrolled Loop Sum:                586.052 ms -> 150007424900848
+File: /home/alex/Projects/YASB_AY/Test.dat (853.583 MB)
+  Simple Sum (baseline):            100.940 ms
+  Unsafe SIMD Loop Sum (mmap):      105.901 ms -> 150007424900848
+  Unsafe SIMD Loop Sum (async):     126.803 ms -> 150007424900848
+  Unsafe SIMD Loop Sum:             127.663 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum:         591.047 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum (async): 546.203 ms -> 150007424900848
+  Unrolled Loop Sum:                581.032 ms -> 150007424900848
+File: /home/alex/Projects/YASB_AY/Test.dat (853.583 MB)
+  Simple Sum (baseline):            96.656 ms
+  Unsafe SIMD Loop Sum (mmap):      105.813 ms -> 150007424900848
+  Unsafe SIMD Loop Sum (async):     121.943 ms -> 150007424900848
+  Unsafe SIMD Loop Sum:             134.106 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum:         595.929 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum (async): 550.591 ms -> 150007424900848
+  Unrolled Loop Sum:                573.514 ms -> 150007424900848
+
+.NET 5.0:
+File: /home/alex/Projects/YASB_AY/Test.dat (853.583 MB)
+  Simple Sum (baseline):            113.709 ms
+  Unsafe SIMD Loop Sum (mmap):      94.455 ms -> 150007424900848
+  Unsafe SIMD Loop Sum (async):     169.689 ms -> 150007424900848
+  Unsafe SIMD Loop Sum:             128.811 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum:         600.375 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum (async): 553.661 ms -> 150007424900848
+  Unrolled Loop Sum:                563.224 ms -> 150007424900848
+File: /home/alex/Projects/YASB_AY/Test.dat (853.583 MB)
+  Simple Sum (baseline):            113.519 ms
+  Unsafe SIMD Loop Sum (mmap):      94.734 ms -> 150007424900848
+  Unsafe SIMD Loop Sum (async):     118.428 ms -> 150007424900848
+  Unsafe SIMD Loop Sum:             127.017 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum:         573.140 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum (async): 526.166 ms -> 150007424900848
+  Unrolled Loop Sum:                581.827 ms -> 150007424900848
+File: /home/alex/Projects/YASB_AY/Test.dat (853.583 MB)
+  Simple Sum (baseline):            117.878 ms
+  Unsafe SIMD Loop Sum (mmap):      94.725 ms -> 150007424900848
+  Unsafe SIMD Loop Sum (async):     117.191 ms -> 150007424900848
+  Unsafe SIMD Loop Sum:             119.999 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum:         468.076 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum (async): 450.273 ms -> 150007424900848
+  Unrolled Loop Sum:                590.941 ms -> 150007424900848
+
+GCC:
+~/Projects/YASB_AY/Cpp/cmake-build-release ~/Projects/YASB_AY/Cpp
+[100%] Built target Cpp
+File: ../../Test.dat
+  readRLEByte: 150007424900848 in 585 ms
+  readRLEBuffer: 150007424900848 in 487 ms
+  readRLEMmap: 150007424900848 in 456 ms
+  readRLEMmapSIMD: 150007424900848 in 75 ms
+~/Projects/YASB_AY/Cpp
+~/Projects/YASB_AY/Cpp/cmake-build-release ~/Projects/YASB_AY/Cpp
+[100%] Built target Cpp
+File: ../../Test.dat
+  readRLEByte: 150007424900848 in 571 ms
+  readRLEBuffer: 150007424900848 in 471 ms
+  readRLEMmap: 150007424900848 in 456 ms
+  readRLEMmapSIMD: 150007424900848 in 75 ms
+~/Projects/YASB_AY/Cpp
+~/Projects/YASB_AY/Cpp/cmake-build-release ~/Projects/YASB_AY/Cpp
+[100%] Built target Cpp
+File: ../../Test.dat
+  readRLEByte: 150007424900848 in 585 ms
+  readRLEBuffer: 150007424900848 in 491 ms
+  readRLEMmap: 150007424900848 in 455 ms
+  readRLEMmapSIMD: 150007424900848 in 75 ms
+~/Projects/YASB_AY/Cpp
