@@ -126,11 +126,11 @@ namespace YetAnotherStupidBenchmark
             var r2 = Measure(() => ComputeSum(fileName, ComputeSumUnrolled));
             Print($"  Unrolled Loop Sum:                {r2.Time.TotalMilliseconds:f3} ms -> {r2.Result}");
 
-//            var r3 = Measure(() => ComputeSum(fileName, ComputeSumChecked));
-//            Print($"  Checked Sum:                      {r3.Time.TotalMilliseconds:f3} ms -> {r3.Result}");
+            // var r3 = Measure(() => ComputeSum(fileName, ComputeSumChecked));
+            // Print($"  Checked Sum:                      {r3.Time.TotalMilliseconds:f3} ms -> {r3.Result}");
 
-            var r = Measure(() => OriginalComputeSum(fileName));
-            Print($"  Original Sum:                     {r.Time.TotalMilliseconds:f3} ms -> {r.Result}");
+            // var r = Measure(() => OriginalComputeSum(fileName));
+            // Print($"  Original Sum:                     {r.Time.TotalMilliseconds:f3} ms -> {r.Result}");
         }
 
         public static (T Result, TimeSpan Time) Measure<T>(Func<T> func)
