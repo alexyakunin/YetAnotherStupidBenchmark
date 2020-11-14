@@ -223,8 +223,7 @@ namespace YetAnotherStupidBenchmark
             return consumeTask.Result;
         }
 
-        [SkipLocalsInit]
-        public static unsafe long OriginalComputeSum(string fileName)
+        public static long OriginalComputeSum(string fileName)
         {
             using var fs = new FileStream(fileName, FileMode.Open);
             long sum = 0;
@@ -242,8 +241,7 @@ namespace YetAnotherStupidBenchmark
             }
         }
 
-        [SkipLocalsInit]
-        private static unsafe long BaselineSum(Span<byte> buffer)
+        private static long BaselineSum(Span<byte> buffer)
         {
             var sum = 0L;
             foreach (var value in MemoryMarshal.Cast<byte, long>(buffer))
@@ -251,8 +249,7 @@ namespace YetAnotherStupidBenchmark
             return sum;
         }
 
-        [SkipLocalsInit]
-        private static unsafe (long, int) ComputeSumChecked(ReadOnlyMemory<byte> buffer, long sum, int n)
+        private static (long, int) ComputeSumChecked(ReadOnlyMemory<byte> buffer, long sum, int n)
         {
             var span = buffer.Span;
             var sequenceLength = 0;
@@ -273,8 +270,7 @@ namespace YetAnotherStupidBenchmark
             return (sum, n);
         }
 
-        [SkipLocalsInit]
-        private static unsafe (long, int) ComputeSum(ReadOnlyMemory<byte> buffer, long sum, int n)
+        private static (long, int) ComputeSum(ReadOnlyMemory<byte> buffer, long sum, int n)
         {
             var span = buffer.Span;
             foreach (var b in span) {
@@ -288,7 +284,6 @@ namespace YetAnotherStupidBenchmark
             return (sum, n);
         }
 
-        [SkipLocalsInit]
         private static unsafe (long, int) ComputeSumUnsafe(ReadOnlyMemory<byte> buffer, long sum, int n) {
             var span = buffer.Span;
             fixed (byte* pStart = span) {
@@ -307,7 +302,6 @@ namespace YetAnotherStupidBenchmark
             return (sum, n);
         }
 
-        [SkipLocalsInit]
         private static unsafe (long, int) ComputeSumUnsafeUnrolledNoBranching(ReadOnlyMemory<byte> buffer, long sum, int n)
         {
             const ulong M80 = 0x8080808080808080ul;
@@ -378,7 +372,6 @@ namespace YetAnotherStupidBenchmark
             return (sum, n);
         }
 
-        [SkipLocalsInit]
         private static unsafe (long, int) ComputeSumUnsafeUnrolled(ReadOnlyMemory<byte> buffer, long sum, int n)
         {
             var span = buffer.Span;
@@ -514,7 +507,6 @@ namespace YetAnotherStupidBenchmark
             return (sum, n);
         }
 
-        [SkipLocalsInit]
         private static unsafe (long, int) ComputeSumUnrolled(ReadOnlyMemory<byte> buffer, long sum, int n)
         {
             var span = buffer.Span;
@@ -588,7 +580,6 @@ namespace YetAnotherStupidBenchmark
             return (sum, n);
         }
 
-        [SkipLocalsInit]
         private static unsafe (long, int) ComputeSumSimd(ReadOnlyMemory<byte> buffer, long sum, int n)
         {
             var span = buffer.Span;
@@ -597,7 +588,6 @@ namespace YetAnotherStupidBenchmark
             }
         }
 
-        [SkipLocalsInit]
         private static unsafe (long, int) ComputeSumSimd(IntPtr start, long length, long sum, int n)
         {
             var b7F = (byte) 127;

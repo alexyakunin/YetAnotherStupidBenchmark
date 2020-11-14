@@ -15,16 +15,15 @@ if [ ! -f "Test.dat" ]; then
 fi
 
 pushd DotNetCore
-./run.sh
-./run.sh
+./run-netcore31.sh
+./run-netcore31.sh
+./run-netcore31.sh
 ./run.sh
 ./run.sh
 ./run.sh
 popd
 
 pushd Cpp
-./run.sh
-./run.sh
 ./run.sh
 ./run.sh
 ./run.sh
