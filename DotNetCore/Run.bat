@@ -1,2 +1,1 @@
-@echo off
-dotnet run -c Release -- %*
+@dotnet run -c Release -- %*

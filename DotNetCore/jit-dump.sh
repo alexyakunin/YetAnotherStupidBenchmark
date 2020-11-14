@@ -1,12 +1,9 @@
 #!/bin/bash
-
-PATH=$HOME/dotnet:$PATH
-DOTNET_ROOT=$HOME/dotnet
 CORECLR_PATH=$HOME/Projects/coreclr
 
 dotnet publish -c Release
 
-pushd ./bin/Debug/netcoreapp3.0/linux-x64/publish
+pushd ./bin/Relase/net5.0/linux-x64/publish
 cp -rT $CORECLR_PATH/bin/Product/Linux.x64.Debug .
 #cp $CORECLR_PATH/bin/Product/Linux.x64.Debug/libclrjit.so .
 

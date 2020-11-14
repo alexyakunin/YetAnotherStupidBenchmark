@@ -7,6 +7,7 @@ using System.IO.MemoryMappedFiles;
 using System.IO.Pipelines;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
@@ -33,7 +34,10 @@ namespace YetAnotherStupidBenchmark
                 GenerateTestFile(TestFilePath, 300_000_000);
                 return;
             }
-            Run(WarmupFilePath, true);
+
+            for (var i = 0; i < 20; i++) // To ensure tiered compilation kicks in
+                Run(WarmupFilePath, true);
+            GC.Collect();
             Run(TestFilePath);
         }
 
@@ -219,7 +223,8 @@ namespace YetAnotherStupidBenchmark
             return consumeTask.Result;
         }
 
-        public static long OriginalComputeSum(string fileName)
+        [SkipLocalsInit]
+        public static unsafe long OriginalComputeSum(string fileName)
         {
             using var fs = new FileStream(fileName, FileMode.Open);
             long sum = 0;
@@ -237,7 +242,8 @@ namespace YetAnotherStupidBenchmark
             }
         }
 
-        private static long BaselineSum(Span<byte> buffer)
+        [SkipLocalsInit]
+        private static unsafe long BaselineSum(Span<byte> buffer)
         {
             var sum = 0L;
             foreach (var value in MemoryMarshal.Cast<byte, long>(buffer))
@@ -245,7 +251,8 @@ namespace YetAnotherStupidBenchmark
             return sum;
         }
 
-        private static (long, int) ComputeSumChecked(ReadOnlyMemory<byte> buffer, long sum, int n)
+        [SkipLocalsInit]
+        private static unsafe (long, int) ComputeSumChecked(ReadOnlyMemory<byte> buffer, long sum, int n)
         {
             var span = buffer.Span;
             var sequenceLength = 0;
@@ -266,7 +273,8 @@ namespace YetAnotherStupidBenchmark
             return (sum, n);
         }
 
-        private static (long, int) ComputeSum(ReadOnlyMemory<byte> buffer, long sum, int n)
+        [SkipLocalsInit]
+        private static unsafe (long, int) ComputeSum(ReadOnlyMemory<byte> buffer, long sum, int n)
         {
             var span = buffer.Span;
             foreach (var b in span) {
@@ -280,6 +288,7 @@ namespace YetAnotherStupidBenchmark
             return (sum, n);
         }
 
+        [SkipLocalsInit]
         private static unsafe (long, int) ComputeSumUnsafe(ReadOnlyMemory<byte> buffer, long sum, int n) {
             var span = buffer.Span;
             fixed (byte* pStart = span) {
@@ -298,6 +307,7 @@ namespace YetAnotherStupidBenchmark
             return (sum, n);
         }
 
+        [SkipLocalsInit]
         private static unsafe (long, int) ComputeSumUnsafeUnrolledNoBranching(ReadOnlyMemory<byte> buffer, long sum, int n)
         {
             const ulong M80 = 0x8080808080808080ul;
@@ -368,6 +378,7 @@ namespace YetAnotherStupidBenchmark
             return (sum, n);
         }
 
+        [SkipLocalsInit]
         private static unsafe (long, int) ComputeSumUnsafeUnrolled(ReadOnlyMemory<byte> buffer, long sum, int n)
         {
             var span = buffer.Span;
@@ -503,7 +514,8 @@ namespace YetAnotherStupidBenchmark
             return (sum, n);
         }
 
-        private static (long, int) ComputeSumUnrolled(ReadOnlyMemory<byte> buffer, long sum, int n)
+        [SkipLocalsInit]
+        private static unsafe (long, int) ComputeSumUnrolled(ReadOnlyMemory<byte> buffer, long sum, int n)
         {
             var span = buffer.Span;
             var span8 = MemoryMarshal.Cast<byte, ulong>(span);
@@ -576,6 +588,7 @@ namespace YetAnotherStupidBenchmark
             return (sum, n);
         }
 
+        [SkipLocalsInit]
         private static unsafe (long, int) ComputeSumSimd(ReadOnlyMemory<byte> buffer, long sum, int n)
         {
             var span = buffer.Span;
@@ -584,6 +597,7 @@ namespace YetAnotherStupidBenchmark
             }
         }
 
+        [SkipLocalsInit]
         private static unsafe (long, int) ComputeSumSimd(IntPtr start, long length, long sum, int n)
         {
             var b7F = (byte) 127;
@@ -613,7 +627,7 @@ namespace YetAnotherStupidBenchmark
             }
 
             // SIMD loop
-            while (p + 36 <= pEnd) {
+            while (p <= pEnd - 36) {
                 // Offset 0
                 var x = Avx2.LoadVector256(p);
                 // f indicates whether *p has flag (assuming p iterates through vector indexes);
