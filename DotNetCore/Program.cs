@@ -18,10 +18,10 @@ namespace YetAnotherStupidBenchmark
 {
     public static class Benchmark
     {
-        public static int MinBufferSize = 256 * 1024; // 256 MB
-        public static string ExePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        public static string TestFilePath = Path.GetFullPath(Path.Join(ExePath, "../../../../Test.dat"));
-        public static string WarmupFilePath = Path.Join(Path.GetDirectoryName(TestFilePath), "Warmup.dat");
+        public static readonly int MinBufferSize = 256 * 1024; // 256 MB
+        public static readonly string ExePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location!)!;
+        public static readonly string TestFilePath = Path.GetFullPath(Path.Join(ExePath, "../../../../Test.dat"));
+        public static readonly string WarmupFilePath = Path.Join(Path.GetDirectoryName(TestFilePath), "Warmup.dat");
 
 
         public static void Main(string[] args)
@@ -42,7 +42,7 @@ namespace YetAnotherStupidBenchmark
             const int PacketSize = 1_000;
             var rnd = new Random(15);
             long Min(long a, long b) => a < b ? a : b;
-            
+
             WriteLine($"File: {filePath}");
 
             using var fs = new FileStream(filePath, FileMode.OpenOrCreate);
@@ -94,14 +94,14 @@ namespace YetAnotherStupidBenchmark
                 }
             }
         }
-        
+
         public static void Run(string fileName, bool warmup = false)
         {
             void Print(string message) {
                 if (!warmup) WriteLine(message);
             }
             Print($"File: {fileName} ({new FileInfo(fileName).Length / 1024.0 / 1024:f3} MB)");
-            
+
             var rb = Measure(() => ComputeBaseline(fileName));
             Print($"  Simple Sum (baseline):            {rb.Time.TotalMilliseconds:f3} ms");
 
@@ -135,7 +135,7 @@ namespace YetAnotherStupidBenchmark
             sw.Start();
             var result = func();
             sw.Stop();
-            return (result, sw.Elapsed); 
+            return (result, sw.Elapsed);
         }
 
         public static long ComputeBaseline(string fileName)
@@ -225,7 +225,7 @@ namespace YetAnotherStupidBenchmark
             long sum = 0;
             int n = 0;
             while (true) {
-                var b = fs.ReadByte(); 
+                var b = fs.ReadByte();
                 while (b < 128) {
                     if (b == -1)
                         return sum + n;
@@ -297,7 +297,7 @@ namespace YetAnotherStupidBenchmark
             }
             return (sum, n);
         }
-        
+
         private static unsafe (long, int) ComputeSumUnsafeUnrolledNoBranching(ReadOnlyMemory<byte> buffer, long sum, int n)
         {
             const ulong M80 = 0x8080808080808080ul;
@@ -367,7 +367,7 @@ namespace YetAnotherStupidBenchmark
             }
             return (sum, n);
         }
-        
+
         private static unsafe (long, int) ComputeSumUnsafeUnrolled(ReadOnlyMemory<byte> buffer, long sum, int n)
         {
             var span = buffer.Span;
@@ -380,112 +380,112 @@ namespace YetAnotherStupidBenchmark
                     var b = p[0];
                     n = (b & 127) + (n << 7);
                     if ((b & 128) != 0) {
-                        sum += n; 
+                        sum += n;
                         n = 0;
                     }
                     // Loop
                     b= p[1];
                     n = (b & 127) + (n << 7);
                     if ((b & 128) != 0) {
-                        sum += n; 
+                        sum += n;
                         n = 0;
                     }
                     // Loop
                     b= p[2];
                     n = (b & 127) + (n << 7);
                     if ((b & 128) != 0) {
-                        sum += n; 
+                        sum += n;
                         n = 0;
                     }
                     // Loop
                     b= p[3];
                     n = (b & 127) + (n << 7);
                     if ((b & 128) != 0) {
-                        sum += n; 
+                        sum += n;
                         n = 0;
                     }
                     // Loop
                     b= p[4];
                     n = (b & 127) + (n << 7);
                     if ((b & 128) != 0) {
-                        sum += n; 
+                        sum += n;
                         n = 0;
                     }
                     // Loop
                     b= p[5];
                     n = (b & 127) + (n << 7);
                     if ((b & 128) != 0) {
-                        sum += n; 
+                        sum += n;
                         n = 0;
                     }
                     // Loop
                     b= p[6];
                     n = (b & 127) + (n << 7);
                     if ((b & 128) != 0) {
-                        sum += n; 
+                        sum += n;
                         n = 0;
                     }
                     // Loop
                     b= p[7];
                     n = (b & 127) + (n << 7);
                     if ((b & 128) != 0) {
-                        sum += n; 
+                        sum += n;
                         n = 0;
                     }
                     // Loop
                     b= p[8];
                     n = (b & 127) + (n << 7);
                     if ((b & 128) != 0) {
-                        sum += n; 
+                        sum += n;
                         n = 0;
                     }
                     // Loop
                     b= p[9];
                     n = (b & 127) + (n << 7);
                     if ((b & 128) != 0) {
-                        sum += n; 
+                        sum += n;
                         n = 0;
                     }
                     // Loop
                     b= p[10];
                     n = (b & 127) + (n << 7);
                     if ((b & 128) != 0) {
-                        sum += n; 
+                        sum += n;
                         n = 0;
                     }
                     // Loop
                     b= p[11];
                     n = (b & 127) + (n << 7);
                     if ((b & 128) != 0) {
-                        sum += n; 
+                        sum += n;
                         n = 0;
                     }
                     // Loop
                     b= p[12];
                     n = (b & 127) + (n << 7);
                     if ((b & 128) != 0) {
-                        sum += n; 
+                        sum += n;
                         n = 0;
                     }
                     // Loop
                     b= p[13];
                     n = (b & 127) + (n << 7);
                     if ((b & 128) != 0) {
-                        sum += n; 
+                        sum += n;
                         n = 0;
                     }
                     // Loop
                     b= p[14];
                     n = (b & 127) + (n << 7);
                     if ((b & 128) != 0) {
-                        sum += n; 
+                        sum += n;
                         n = 0;
                     }
                     // Loop
                     b= p[15];
                     n = (b & 127) + (n << 7);
                     if ((b & 128) != 0) {
-                        sum += n; 
+                        sum += n;
                         n = 0;
                     }
 
@@ -495,14 +495,14 @@ namespace YetAnotherStupidBenchmark
                     var b = *p++;
                     n = (b & 127) + (n << 7);
                     if ((b & 128) != 0) {
-                        sum += n; 
+                        sum += n;
                         n = 0;
                     }
                 }
             }
             return (sum, n);
         }
-        
+
         private static (long, int) ComputeSumUnrolled(ReadOnlyMemory<byte> buffer, long sum, int n)
         {
             var span = buffer.Span;
@@ -512,56 +512,56 @@ namespace YetAnotherStupidBenchmark
                 var b = (int) (v & 255);
                 n = (b & 127) + (n << 7);
                 if ((b & 128) != 0) {
-                    sum += n; 
+                    sum += n;
                     n = 0;
                 }
                 // Loop
                 b = (int) (v >> 8 & 255);
                 n = (b & 127) + (n << 7);
                 if ((b & 128) != 0) {
-                    sum += n; 
+                    sum += n;
                     n = 0;
                 }
                 // Loop
                 b = (int) (v >> 16 & 255);
                 n = (b & 127) + (n << 7);
                 if ((b & 128) != 0) {
-                    sum += n; 
+                    sum += n;
                     n = 0;
                 }
                 // Loop
                 b = (int) (v >> 24 & 255);
                 n = (b & 127) + (n << 7);
                 if ((b & 128) != 0) {
-                    sum += n; 
+                    sum += n;
                     n = 0;
                 }
                 // Loop
                 b = (int) (v >> 32 & 255);
                 n = (b & 127) + (n << 7);
                 if ((b & 128) != 0) {
-                    sum += n; 
+                    sum += n;
                     n = 0;
                 }
                 // Loop
                 b = (int) (v >> 40 & 255);
                 n = (b & 127) + (n << 7);
                 if ((b & 128) != 0) {
-                    sum += n; 
+                    sum += n;
                     n = 0;
                 }
                 // Loop
                 b = (int) (v >> 48 & 255);
                 n = (b & 127) + (n << 7);
                 if ((b & 128) != 0) {
-                    sum += n; 
+                    sum += n;
                     n = 0;
                 }
                 // Loop
                 b = (int) (v >> 56 & 255);
                 n = (b & 127) + (n << 7);
                 if ((b & 128) != 0) {
-                    sum += n; 
+                    sum += n;
                     n = 0;
                 }
             }
@@ -569,7 +569,7 @@ namespace YetAnotherStupidBenchmark
             foreach (var b in span1) {
                 n = (b & 127) + (n << 7);
                 if ((b & 128) != 0) {
-                    sum += n; 
+                    sum += n;
                     n = 0;
                 }
             }
@@ -625,8 +625,8 @@ namespace YetAnotherStupidBenchmark
                 var x1 = Avx2.LoadVector256(p + 1);
                 var f1 = Avx2.CompareGreaterThan(Vector256<sbyte>.Zero, x1.AsSByte()).AsByte();
                 // f01 indicates whether *p flag sequence is (0,1); similarly, f[i] is either 0 or -1
-                var f01 = Avx2.CompareGreaterThan(f.AsSByte(), f1.AsSByte()).AsByte(); 
-                
+                var f01 = Avx2.CompareGreaterThan(f.AsSByte(), f1.AsSByte()).AsByte();
+
                 // Offset 2
                 var x2 = Avx2.LoadVector256(p + 2);
                 var f2 = Avx2.CompareGreaterThan(Vector256<sbyte>.Zero, x2.AsSByte()).AsByte();
@@ -654,12 +654,12 @@ namespace YetAnotherStupidBenchmark
 
             sum += s.GetElement(0) + s.GetElement(1) + s.GetElement(2) + s.GetElement(3);
             n = 0; // Fine assuming we'll process 4+ items in the following loop
-            
+
             while (p < pEnd) {
                 var b = *p++;
                 n = (b & 127) + (n << 7);
                 if ((b & 128) != 0) {
-                    sum += n; 
+                    sum += n;
                     n = 0;
                 }
             }
