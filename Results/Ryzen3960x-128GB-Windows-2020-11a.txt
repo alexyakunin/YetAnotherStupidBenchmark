@@ -1,0 +1,62 @@
+.NET Core 3.1:
+File: D:\Projects\YetAnotherStupidBenchmark\Test.dat (853.583 MB)
+  Simple Sum (baseline):            163.899 ms
+  Unsafe SIMD Loop Sum (mmap):      360.507 ms -> 150007424900848
+  Unsafe SIMD Loop Sum (async):     305.213 ms -> 150007424900848
+  Unsafe SIMD Loop Sum:             183.015 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum:         536.869 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum (async): 433.873 ms -> 150007424900848
+  Unrolled Loop Sum:                621.717 ms -> 150007424900848
+File: D:\Projects\YetAnotherStupidBenchmark\Test.dat (853.583 MB)
+  Simple Sum (baseline):            158.102 ms
+  Unsafe SIMD Loop Sum (mmap):      360.135 ms -> 150007424900848
+  Unsafe SIMD Loop Sum (async):     308.728 ms -> 150007424900848
+  Unsafe SIMD Loop Sum:             183.425 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum:         463.682 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum (async): 394.558 ms -> 150007424900848
+  Unrolled Loop Sum:                634.492 ms -> 150007424900848
+File: D:\Projects\YetAnotherStupidBenchmark\Test.dat (853.583 MB)
+  Simple Sum (baseline):            163.151 ms
+  Unsafe SIMD Loop Sum (mmap):      362.116 ms -> 150007424900848
+  Unsafe SIMD Loop Sum (async):     293.224 ms -> 150007424900848
+  Unsafe SIMD Loop Sum:             183.529 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum:         525.540 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum (async): 423.735 ms -> 150007424900848
+  Unrolled Loop Sum:                621.075 ms -> 150007424900848
+
+.NET 5.0:
+File: D:\Projects\YetAnotherStupidBenchmark\Test.dat (853.583 MB)
+  Simple Sum (baseline):            169.518 ms
+  Unsafe SIMD Loop Sum (mmap):      357.022 ms -> 150007424900848
+  Unsafe SIMD Loop Sum (async):     292.407 ms -> 150007424900848
+  Unsafe SIMD Loop Sum:             174.525 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum:         510.550 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum (async): 417.954 ms -> 150007424900848
+  Unrolled Loop Sum:                629.818 ms -> 150007424900848
+File: D:\Projects\YetAnotherStupidBenchmark\Test.dat (853.583 MB)
+  Simple Sum (baseline):            177.379 ms
+  Unsafe SIMD Loop Sum (mmap):      356.778 ms -> 150007424900848
+  Unsafe SIMD Loop Sum (async):     288.962 ms -> 150007424900848
+  Unsafe SIMD Loop Sum:             178.576 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum:         464.917 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum (async): 379.533 ms -> 150007424900848
+  Unrolled Loop Sum:                627.928 ms -> 150007424900848
+File: D:\Projects\YetAnotherStupidBenchmark\Test.dat (853.583 MB)
+  Simple Sum (baseline):            168.561 ms
+  Unsafe SIMD Loop Sum (mmap):      354.976 ms -> 150007424900848
+  Unsafe SIMD Loop Sum (async):     297.313 ms -> 150007424900848
+  Unsafe SIMD Loop Sum:             173.974 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum:         469.927 ms -> 150007424900848
+  Unsafe Unrolled Loop Sum (async): 394.580 ms -> 150007424900848
+  Unrolled Loop Sum:                623.255 ms -> 150007424900848
+
+GCC:
+File: ../../Test.dat
+  readRLEByte: 150007424900848 in 640 ms
+  readRLEBuffer: 150007424900848 in 578 ms
+File: ../../Test.dat
+  readRLEByte: 150007424900848 in 640 ms
+  readRLEBuffer: 150007424900848 in 562 ms
+File: ../../Test.dat
+  readRLEByte: 150007424900848 in 640 ms
+  readRLEBuffer: 150007424900848 in 562 ms

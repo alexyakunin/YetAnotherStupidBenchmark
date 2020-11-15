@@ -11,13 +11,13 @@ echo .NET Core 3.1:
 call Run-netcore31.bat
 call Run-netcore31.bat
 call Run-netcore31.bat
-echo .
+echo.
 
 echo .NET 5.0:
 call Run.bat
 call Run.bat
 call Run.bat
-echo .
+echo.
 popd
 
 pushd Cpp
